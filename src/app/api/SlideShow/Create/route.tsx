@@ -1,38 +1,25 @@
 import { NextResponse, NextRequest } from 'next/server';
 import pool from '../../../db/mysql';
-import fs from 'fs';
-import path from 'path';
 
 export async function POST(request: NextRequest) {
-  try {
-    const { no, image, url } = await request.json();
+    try {
+        const data = await request.json();
+        console.log(data)
+        const { image } = data; // Assuming the image data is sent as 'slider_image'
 
-    // Decode the base64 image
-    const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
-    const buffer = Buffer.from(base64Data, 'base64');
+        // Your SQL query to insert the image data into the 'tb_slider' table
+        const query = 'INSERT INTO tb_slider (slider_image) VALUES (?)';
+        await pool.query(query, [image]);
 
-    // Generate a unique file name
-    const fileName = `Slides_${Date.now()}.png`; // or .jpg depending on your image type
-    const filePath = path.join(process.cwd(), 'public', 'Uploads', 'Slides', fileName);
-
-    // Ensure the directory exists
-    const dir = path.dirname(filePath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+        return new Response(JSON.stringify({ success: true }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    } catch (error) {
+        console.error('Error processing POST request:', error);
+        return new Response(JSON.stringify({ error: 'Internal server error' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
-
-    // Save the file to the directory
-    fs.writeFileSync(filePath, buffer);
-
-    // Insert into the database
-    const query = 'INSERT INTO tb_slider (slider_no, slider_image, slider_url) VALUES (?, ?, ?)';
-    const values = [no, image, url];
-console.log(values)
-    await pool.query(query, values);
-
-    return NextResponse.json({ message: 'Slider inserted successfully' });
-  } catch (error) {
-    console.error('Error inserting slider:', error);
-    return NextResponse.json({ error: 'Failed to insert slider' }, { status: 500 });
-  }
 }

@@ -1,79 +1,47 @@
-'use client';
+"use client";
 import { useEffect, useState } from 'react';
-import { Typography, CircularProgress, Grid } from '@mui/material';
-import PageContainer from '@/app/(Dashboard)/components/container/PageContainer';
-import DashboardCard from '@/app/(Dashboard)/components/shared/DashboardCard';
-import axios from 'axios';
 
-const SamplePage = () => {
-  const [images, setImages] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface Image {
+    id: number;
+    image: string; // The base64 image data
+}
 
-  useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/SlideShow`, {
-          responseType: 'json',
-        });
-
-        console.log('API Response:', response.data);
-
-        if (!Array.isArray(response.data)) {
-          throw new Error('Invalid response format: expected an array');
-        }
-
-        const imageUrls = response.data.map((item: { url: string }) => item.url);
-        console.log('Image URLs from API:', imageUrls);
-
-        const imageBlobs = await Promise.all(
-          imageUrls.map(async (url) => {
+const ImageList = () => {
+    const [images, setImages] = useState<Image[]>([]);
+    const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+    console.log('Raw data from API:', images);
+    useEffect(() => {
+        const fetchImages = async () => {
             try {
-              console.log('Fetching image from URL:', url);
-              const blobResponse = await axios.get(url, { responseType: 'blob' });
-              console.log('Blob Response:', blobResponse);
+                const response = await fetch(`${API}/SlideShow`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                console.log('Raw data from API:', data);
 
-              const imageUrl = URL.createObjectURL(blobResponse.data);
-              console.log('Created Image URL:', imageUrl);
-              return imageUrl;
-            } catch (err) {
-              console.error('Error fetching image blob from URL:', url, err);
-              throw err;
+                // Assuming the image data is base64 encoded
+                const processedData = data.map((img: any) => ({
+                    id: img.slider_id, // Use the correct property name as per your API response
+                    image: `data:image/png;base64,${img.slider_image}`, // Prefix with the appropriate data URL scheme
+                }));
+
+                setImages(processedData);
+            } catch (error) {
+                console.error('Failed to fetch images:', error);
             }
-          })
-        );
+        };
 
-        setImages(imageBlobs);
-      } catch (err) {
-        console.error('Error fetching images:', err);
-        setError(err.message || 'Error fetching images');
-      } finally {
-        setLoading(false);
-      }
-    };
+        fetchImages();
+    }, [API]);
 
-    fetchImages();
-  }, []);
-
-  return (
-    <PageContainer title="Sample Page" description="This is a Sample page">
-      <DashboardCard title="Sample Page">
-        {loading ? (
-          <CircularProgress />
-        ) : error ? (
-          <Typography color="error">Failed to load images: {error}</Typography>
-        ) : (
-          <Grid container spacing={2}>
-            {images.map((image, index) => (
-              <Grid item xs={12} sm={6} md={4} key={index}>
-                <img src={image} alt={`Sample ${index + 1}`} style={{ width: '100%', height: 'auto' }} />
-              </Grid>
+    return (
+        <div>
+            {images.map((img) => (
+                <img key={img.id} src={img.image} alt={`Image ${img.id}`} />
             ))}
-          </Grid>
-        )}
-      </DashboardCard>
-    </PageContainer>
-  );
+        </div>
+    );
 };
 
-export default SamplePage;
+export default ImageList;
