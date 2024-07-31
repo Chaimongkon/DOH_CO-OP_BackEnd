@@ -1,0 +1,11 @@
+@font-face {
+  font-family: 'Mitr';
+  src: url('/fonts/Mitr/Mitr-Regular.ttf') format('truetype'),
+    url('/fonts/Mitr/Mitr-Bold.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --ant-typography-font-family: 'Mitr', sans-serif;
+}
