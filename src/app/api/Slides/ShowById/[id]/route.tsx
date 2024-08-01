@@ -1,17 +1,24 @@
-import { NextResponse } from "next/server";
-import pool from '../../db/mysql';
+import { NextResponse, NextRequest } from "next/server";
+import pool from '../../../../db/mysql';
 
-export async function GET() {
+type Params = {
+    id: string;
+};
+
+export async function GET(
+    request: NextRequest,
+    { params }: { params: Params }
+) {
     try {
         const db = await pool.getConnection();
-        const query = 'SELECT slider_id, slider_image FROM tb_slider ORDER BY slider_no ASC';
-        const [rows]: [any[], any] = await db.execute(query); // Ensure rows is correctly typed
+        const query = 'SELECT Id, No, Image, URLLink FROM slides WHERE Id = ?';
+        const [rows]: [any[], any] = await db.execute(query, [params.id]); // Use params.id to execute query
         db.release();
 
-        // Ensure rows is treated as an array
+        // Ensure rows is treated as an array and format the response
         const formattedRows = rows.map(row => ({
             ...row,
-            slider_image: row.slider_image.toString('base64')
+            Image: row.Image.toString('base64')
         }));
 
         return NextResponse.json(formattedRows);
