@@ -1,13 +1,24 @@
 import { NextResponse, NextRequest } from "next/server";
 import pool from "../../../db/mysql";
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb', // Set desired limit
+    },
+  },
+};
+
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
     const { no, image, urllink } = data;
-console.log(data)
-    const query = "INSERT INTO slides (No, Image, URLLink) VALUES (?,?,?)";
-    await pool.query(query, [no, image, urllink]);
+
+    // Convert base64 image to buffer
+    const imageBuffer = Buffer.from(image.split(",")[1], "base64");
+
+    const query = "INSERT INTO slides (No, Image, URLLink) VALUES (?, ?, ?)";
+    await pool.query(query, [no, imageBuffer, urllink]);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

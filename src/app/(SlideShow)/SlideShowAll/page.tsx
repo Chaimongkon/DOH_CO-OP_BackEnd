@@ -41,7 +41,7 @@ const SlideShowAll = () => {
       const processedData = data.map((slide: any) => ({
         id: slide.Id,
         no: slide.No,
-        image: `${slide.Image}`,
+        image: `data:;base64,${slide.Image}`,
         url: slide.URLLink,
       }));
 
