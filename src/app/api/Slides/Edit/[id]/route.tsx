@@ -9,13 +9,14 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Params }
 ) {
-  const { No, URLLink, Image } = await request.json();
+  const { no, image, urllink  } = await request.json();
   const { id } = params;
 
   try {
+    const imageBuffer = Buffer.from(image.split(",")[1], "base64");
     const [result]: any = await pool.query(
       "UPDATE slides SET No = ?, URLLink = ?, Image = ? WHERE Id = ?",
-      [No, URLLink, Image, id]
+      [no, urllink, imageBuffer, id]
     );
 
     return NextResponse.json({

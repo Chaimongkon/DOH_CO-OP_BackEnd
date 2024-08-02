@@ -40,7 +40,7 @@ const MenuItems = [
         id: uniqueId(),
         icon: StyledIcon,
         title: "Dialog Box",
-        href: "/utilities/typography",
+        href: "/NotifiShowAll",
       },
     ],
   },

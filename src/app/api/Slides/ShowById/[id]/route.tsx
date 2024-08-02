@@ -16,13 +16,12 @@ export async function GET(
         db.release();
 
         // Ensure rows is treated as an array and format the response
-        const formattedRows = rows.map(row => ({
+        const processedRows = rows.map((row) => ({
             ...row,
-            Image: row.Image.toString('base64')
-        }));
+            Image: Buffer.from(row.Image).toString('base64'), // Convert BLOB to base64
+          }));
 
-        return NextResponse.json(formattedRows);
-
+          return NextResponse.json(processedRows, { status: 200 });
     } catch (error: unknown) {
         if (error instanceof Error) {
             return NextResponse.json({
