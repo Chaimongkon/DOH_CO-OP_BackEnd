@@ -9,19 +9,18 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Params }
 ) {
-  const { no, image, urllink } = await request.json();
+  const { status } = await request.json();
   const { id } = params;
 
   try {
-    const imageBuffer = Buffer.from(image.split(",")[1], "base64");
     const [result]: any = await pool.query(
-      "UPDATE slides SET No = ?, URLLink = ?, Image = ?, UpdateDate = NOW() WHERE Id = ?",
-      [no, urllink, imageBuffer, id]
+      "UPDATE notification SET `IsActive` =? WHERE `Id` =?",
+      [status, id]
     );
 
-    return NextResponse.json({
-      message: "Update successful",
-      updatedSlide: result,
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     const errorMessage =

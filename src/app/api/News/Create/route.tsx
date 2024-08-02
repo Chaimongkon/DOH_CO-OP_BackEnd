@@ -4,13 +4,18 @@ import pool from "../../../db/mysql";
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
-    const { image, urllink } = data;
-    const status = false
-    // Convert base64 image to buffer
-    const imageBuffer = Buffer.from(image.split(",")[1], "base64");
+    const { title, details, image, pdf } = data;
 
-    const query = "INSERT INTO notification (Image, URLLink, IsActive, CreateDate) VALUES (?, ?, ?, NOW())";
-    await pool.query(query, [imageBuffer, urllink, status]);
+    if (!image || !pdf) {
+      throw new Error("Missing image or pdf data");
+    }
+
+    // Convert base64 image and pdf to buffer
+    const imageBuffer = Buffer.from(image.split(",")[1], "base64");
+    const pdfBuffer = Buffer.from(pdf.split(",")[1], "base64");
+
+    const query = "INSERT INTO news (Title, Details, Image, File, CreateDate) VALUES (?, ?, ?, ?, NOW())";
+    await pool.query(query, [title, details, imageBuffer, pdfBuffer]);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

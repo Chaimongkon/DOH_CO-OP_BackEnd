@@ -31,18 +31,13 @@ interface Notify {
   id: string;
 }
 
-interface Props {
-  notify: Notify;
-}
 
-const SlideShowAll : React.FC<Props> = ({ notify }) => {
+const NotifiShowAll = () => {
   const router = useRouter();
   const [checked, setChecked] = useState<string>("");
   const [id, setId] = useState<string>("");
   const [notifi, setNotifi] = useState<Notifi[]>([]);
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-console.log(checked)
 
   const fetchImages = useCallback(async () => {
     try {
@@ -84,9 +79,36 @@ console.log(checked)
     }
   };
 
-  const hastatus = () => {
-    // Add your hastatus logic here
-  };
+  const hastatus = useCallback(async () => {
+    try {
+      const response = await fetch(`${API}Notifications/UpdateStatus/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: id,
+          status: checked,
+        }),
+      });
+      const result = await response.json();
+      console.log(result);
+
+      Swal.fire({
+        position: "top-end",
+        icon: "success",
+        title: "UPDATE STATUS SUCCESSFULLY",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+
+      if (result.status === "OK") {
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("error", error);
+    }
+  }, [API, id, checked]);
 
   const Delete = async (id: number) => {
     try {
@@ -113,7 +135,10 @@ console.log(checked)
 
   useEffect(() => {
     fetchImages();
-  }, [fetchImages]);
+    if (Object.keys(id).length > 0) {
+      hastatus();
+    }
+  }, [id, fetchImages, hastatus]);
 
   return (
     <DashboardCard title="จัดการ Notifications ">
@@ -122,7 +147,7 @@ console.log(checked)
           <Box display="flex">
             <Box sx={{ flexGrow: 1 }}> </Box>
             <Box>
-              <Link href="/SlideCreate">
+              <Link href="/NotifiCreate">
                 <Button
                   component="label"
                   role={undefined}
@@ -170,7 +195,7 @@ console.log(checked)
                       color="warning"
                       tabIndex={-1}
                       startIcon={<DeleteIcon />}
-                      onClick={() => router.push(`/SlideEdit/${notifiy.id}`)}
+                      onClick={() => router.push(`/NotifiEdit/${notifiy.id}`)}
                     >
                       Edit
                     </Button>
@@ -212,4 +237,4 @@ console.log(checked)
   );
 };
 
-export default SlideShowAll;
+export default NotifiShowAll;

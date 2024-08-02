@@ -82,40 +82,39 @@ const SlideShowAll = () => {
     <DashboardCard title="จัดการ Slides ">
       <Container maxWidth="lg">
         <Paper>
-          <Box display="flex">
-            <Box sx={{ flexGrow: 1 }}> </Box>
-            <Box>
-              <Link href="/SlideCreate">
-                <Button
-                  component="label"
-                  role={undefined}
-                  variant="contained"
-                  size="small"
-                  color="success"
-                  tabIndex={-1}
-                  startIcon={<AddCircleIcon />}
-                >
-                  Add Slides
-                </Button>
-              </Link>
-            </Box>
+          <Box display="flex" justifyContent="space-between" mb={2}>
+            <Box></Box>
+            <Link href="/SlideCreate">
+              <Button
+                component="label"
+                role={undefined}
+                variant="contained"
+                size="small"
+                color="success"
+                tabIndex={-1}
+                startIcon={<AddCircleIcon />}
+              >
+                Add Slides
+              </Button>
+            </Link>
           </Box>
-          <Box component="ul">
-            <Box
-              component="ul"
-              sx={{
-                display: "flex",
-                gap: 3,
-                flexWrap: "wrap",
-                p: 2,
-                m: 0,
-              }}
-            >
-              {slides.map((slide) => (
-                <Card variant="outlined" sx={{ width: 320 }} key={slide.id}>
+          <Box
+            component="ul"
+            sx={{
+              display: "flex",
+              gap: 3,
+              flexWrap: "wrap",
+              p: 2,
+              m: 0,
+              listStyle: "none",
+            }}
+          >
+            {slides.map((slide) => (
+              <Box component="li" key={slide.id}>
+                <Card variant="outlined" sx={{ width: 320 }}>
                   <CardMedia
                     component="img"
-                    alt="green iguana"
+                    alt="Slide Image"
                     height="140"
                     image={slide.image}
                   />
@@ -154,8 +153,8 @@ const SlideShowAll = () => {
                     </Button>
                   </CardActions>
                 </Card>
-              ))}
-            </Box>
+              </Box>
+            ))}
           </Box>
         </Paper>
       </Container>

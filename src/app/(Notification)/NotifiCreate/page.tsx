@@ -85,7 +85,7 @@ const NotifiCreate = () => {
               showConfirmButton: false,
               timer: 1500,
             }).then(() => {
-              router.push(`/SlideShowAll`);
+              router.push(`/NotifiShowAll`);
             });;
             setImage(null);
             setUrl("");
@@ -208,12 +208,7 @@ const NotifiCreate = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => {
-                setImage(null);
-                setUrl("");
-                setIsSelectedimg(false);
-                setPreview(null);
-              }}
+              onClick={() => router.push(`/NotifiShowAll`)}
             >
               Cancel
             </Button>

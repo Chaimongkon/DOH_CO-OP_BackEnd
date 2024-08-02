@@ -33,13 +33,19 @@ const MenuItems = [
       {
         id: uniqueId(),
         icon: StyledIcon,
-        title: "Slide Show",
+        title: "News",
+        href: "/NewGetAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "Slides",
         href: "/SlideShowAll",
       },
       {
         id: uniqueId(),
         icon: StyledIcon,
-        title: "Dialog Box",
+        title: "Notifications",
         href: "/NotifiShowAll",
       },
     ],

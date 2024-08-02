@@ -222,13 +222,7 @@ const SlideCreate = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => {
-                setImage(null);
-                setNo("");
-                setUrl("");
-                setIsSelectedimg(false);
-                setPreview(null);
-              }}
+              onClick={() => router.push(`/SlideShowAll`)}
             >
               Cancel
             </Button>
