@@ -12,7 +12,6 @@ const PageContainer = ({ title, description, children }: Props) => (
   <HelmetProvider>
     <div>
       <Helmet>
-        <title>{title}</title>
         <meta name="description" content={description} />
       </Helmet>
       {children}

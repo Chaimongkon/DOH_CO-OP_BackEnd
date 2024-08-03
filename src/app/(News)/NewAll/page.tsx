@@ -56,7 +56,7 @@ interface Data {
   File: string;
 }
 
-export default function ColumnGroupingTable() {
+export default function NewAll() {
   const theme = useTheme();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [page, setPage] = useState(0);
@@ -130,7 +130,7 @@ export default function ColumnGroupingTable() {
 
   return (
     <DashboardCard title="จัดการ News">
-      <Container maxWidth="lg">
+      <Container>
         <Paper
           sx={{
             display: "flex",
@@ -181,11 +181,11 @@ export default function ColumnGroupingTable() {
               tabIndex={-1}
               startIcon={<AddCircleIcon />}
             >
-              Add Notification
+              Add News
             </Button>
           </Link>
         </Paper>
-        <Paper sx={{ width: "100%", overflowX: "auto" }}>
+        <Paper >
           <TableContainer>
             <Table stickyHeader aria-label="sticky table">
               <TableHead>
@@ -215,7 +215,7 @@ export default function ColumnGroupingTable() {
                                 size="small"
                                 color="warning"
                                 startIcon={<EditIcon />}
-                                onClick={() => router.push(`/NotifiEdit/${row.Id}`)}
+                                onClick={() => router.push(`/NewEdit/${row.Id}`)}
                               >
                                 Edit
                               </Button>
@@ -245,6 +245,7 @@ export default function ColumnGroupingTable() {
                               ) : column.id === "File" ? (
                                 <Button
                                   variant="contained"
+                                  size="small"
                                   onClick={() => handleClickOpen(value as string)}
                                 >
                                   View PDF

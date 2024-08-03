@@ -8,9 +8,8 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import FlipCameraAndroidIcon from "@mui/icons-material/FlipCameraAndroid";
 import { useRouter } from "next/navigation";
 
-const SlideCreate = () => {
+const NotifyCreate = () => {
   const router = useRouter();
-  const [no, setNo] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [url, setUrl] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
@@ -31,7 +30,7 @@ const SlideCreate = () => {
       img.src = URL.createObjectURL(selectedImage);
 
       img.onload = () => {
-        if (img.width > 1671 || img.height > 686) {
+        if (img.width > 740 || img.height > 740) {
           Swal.fire({
             icon: "error",
             title: "ขนาดภาพใหญ่เกิ๊น",
@@ -67,13 +66,12 @@ const SlideCreate = () => {
 
         if (base64String) {
           const imageType = image.type;
-          const response = await fetch(`${API}Slides/Create`, {
+          const response = await fetch(`${API}Notifications/Create`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              no: no,
               image: `data:${imageType};base64,${base64String}`,
               urllink: url,
             }),
@@ -87,10 +85,9 @@ const SlideCreate = () => {
               showConfirmButton: false,
               timer: 1500,
             }).then(() => {
-              router.push(`/SlideShowAll`);
+              router.push(`/NotifyAll`);
             });;
             setImage(null);
-            setNo("");
             setUrl("");
             setIsSelectedimg(false);
             setPreview(null);
@@ -119,19 +116,8 @@ const SlideCreate = () => {
   }, [image]);
 
   return (
-    <DashboardCard title="Create Slides">
+    <DashboardCard title="Create Notification">
       <form className="forms-sample" onSubmit={handleSubmit}>
-        <Box component="section" sx={{ p: 2 }}>
-          <TextField
-            fullWidth
-            id="outlined-basic"
-            label="ลำดับการแสดง"
-            variant="outlined"
-            size="small"
-            onChange={(e) => setNo(e.target.value)}
-            value={no}
-          />
-        </Box>
         <Box component="section" sx={{ p: 2 }}>
           <div
             className="form-group"
@@ -144,7 +130,7 @@ const SlideCreate = () => {
           >
             <label>
               รูปภาพ{" "}
-              <span style={{ color: "red" }}>ขนาดภาพสวยๆ 1671px X 686px</span>
+              <span style={{ color: "red" }}>ขนาดภาพสวยๆ 740px X 740px</span>
             </label>
             <br />
             <br />
@@ -222,7 +208,7 @@ const SlideCreate = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => router.push(`/SlideShowAll`)}
+              onClick={() => router.push(`/NotifyAll`)}
             >
               Cancel
             </Button>
@@ -233,4 +219,4 @@ const SlideCreate = () => {
   );
 };
 
-export default SlideCreate;
+export default NotifyCreate;

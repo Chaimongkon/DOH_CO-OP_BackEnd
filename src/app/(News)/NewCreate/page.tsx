@@ -16,6 +16,7 @@ const NewCreate = () => {
   const [pdf, setPDF] = useState<File | null>(null);
   const [details, setDetails] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
+  const [pdfpreview, setPdfpreview] = useState<any>(null);
   const [isSelectedimg, setIsSelectedimg] = useState(false);
   const [isSelectedPDF, setIsSelectedPDF] = useState(false);
 
@@ -42,7 +43,7 @@ const NewCreate = () => {
           Swal.fire({
             icon: "error",
             title: "ขนาดภาพใหญ่เกิ๊น",
-            html: `กรุณาเลือกรูปภาพที่มีขนาด <font style="color:red"><b>300px X 300px</b></font> <br />หรือ รูปที่เล็กกว่า`,
+            html: `กรุณาเลือกรูปภาพที่มีขนาด <font style="color:red"><b>512px X 512px</b></font> <br />หรือ รูปที่เล็กกว่า`,
           });
           setImage(null);
           setIsSelectedimg(false);
@@ -63,8 +64,15 @@ const NewCreate = () => {
   const handlePDF = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const selectedPDF = event.target.files[0];
-      setPDF(selectedPDF);
-      setIsSelectedPDF(true);
+      const readerpdf = new FileReader();
+      readerpdf.readAsDataURL(selectedPDF);
+      readerpdf.onloadend = async () => {
+        const base64Stringpdf = readerpdf.result?.toString().split(",")[1];
+
+        setPdfpreview(base64Stringpdf);
+        setPDF(selectedPDF);
+        setIsSelectedPDF(true);
+      };
     }
   };
 
@@ -108,7 +116,7 @@ const NewCreate = () => {
                 showConfirmButton: false,
                 timer: 1500,
               }).then(() => {
-                router.push(`/NewGetAll`);
+                router.push(`/NewAll`);
               });
               setImage(null);
               setTitle("");
@@ -256,10 +264,11 @@ const NewCreate = () => {
             {isSelectedPDF ? (
               <div>
                 <center>
-                  <img
-                    height="206px"
-                    src={"/images/backgrounds/pdf-file.png"}
-                    alt="Preview"
+                  <iframe
+                    src={`data:application/pdf;base64,${pdfpreview}`}
+                    width="100%"
+                    height="600px"
+                    title="PDF Preview"
                   />
                   <br />
 
@@ -320,7 +329,7 @@ const NewCreate = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => router.push(`/NewGetAll`)}
+              onClick={() => router.push(`/NewAll`)}
             >
               Cancel
             </Button>

@@ -8,8 +8,9 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import FlipCameraAndroidIcon from "@mui/icons-material/FlipCameraAndroid";
 import { useRouter } from "next/navigation";
 
-const NotifiCreate = () => {
+const SlideCreate = () => {
   const router = useRouter();
+  const [no, setNo] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [url, setUrl] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
@@ -30,7 +31,7 @@ const NotifiCreate = () => {
       img.src = URL.createObjectURL(selectedImage);
 
       img.onload = () => {
-        if (img.width > 740 || img.height > 740) {
+        if (img.width > 1671 || img.height > 686) {
           Swal.fire({
             icon: "error",
             title: "ขนาดภาพใหญ่เกิ๊น",
@@ -66,12 +67,13 @@ const NotifiCreate = () => {
 
         if (base64String) {
           const imageType = image.type;
-          const response = await fetch(`${API}Notifications/Create`, {
+          const response = await fetch(`${API}Slides/Create`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
+              no: no,
               image: `data:${imageType};base64,${base64String}`,
               urllink: url,
             }),
@@ -85,9 +87,10 @@ const NotifiCreate = () => {
               showConfirmButton: false,
               timer: 1500,
             }).then(() => {
-              router.push(`/NotifiShowAll`);
+              router.push(`/SlideAll`);
             });;
             setImage(null);
+            setNo("");
             setUrl("");
             setIsSelectedimg(false);
             setPreview(null);
@@ -116,8 +119,19 @@ const NotifiCreate = () => {
   }, [image]);
 
   return (
-    <DashboardCard title="Create Notification">
+    <DashboardCard title="Create Slides">
       <form className="forms-sample" onSubmit={handleSubmit}>
+        <Box component="section" sx={{ p: 2 }}>
+          <TextField
+            fullWidth
+            id="outlined-basic"
+            label="ลำดับการแสดง"
+            variant="outlined"
+            size="small"
+            onChange={(e) => setNo(e.target.value)}
+            value={no}
+          />
+        </Box>
         <Box component="section" sx={{ p: 2 }}>
           <div
             className="form-group"
@@ -130,7 +144,7 @@ const NotifiCreate = () => {
           >
             <label>
               รูปภาพ{" "}
-              <span style={{ color: "red" }}>ขนาดภาพสวยๆ 740px X 740px</span>
+              <span style={{ color: "red" }}>ขนาดภาพสวยๆ 1671px X 686px</span>
             </label>
             <br />
             <br />
@@ -208,7 +222,7 @@ const NotifiCreate = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => router.push(`/NotifiShowAll`)}
+              onClick={() => router.push(`/SlideAll`)}
             >
               Cancel
             </Button>
@@ -219,4 +233,4 @@ const NotifiCreate = () => {
   );
 };
 
-export default NotifiCreate;
+export default SlideCreate;

@@ -1,7 +1,7 @@
 import { useMediaQuery, Box, Drawer } from "@mui/material";
 import Logo from "../shared/logo/Logo";
 import SidebarItems from "./SidebarItems";
-
+import theme from "@/utils/theme"; // Assuming you have a theme file
 
 interface ItemType {
   isMobileSidebarOpen: boolean;
@@ -14,7 +14,7 @@ const Sidebar = ({
   onSidebarClose,
   isSidebarOpen,
 }: ItemType) => {
-  const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("lg"));
+  const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("sm"));
 
   const sidebarWidth = "270px";
 
@@ -27,16 +27,14 @@ const Sidebar = ({
           borderRadius: "13px",
         }}
       >
-        {/* ------------------------------------------- */}
         {/* Sidebar for desktop */}
-        {/* ------------------------------------------- */}
         <Drawer
           anchor="left"
           open={isSidebarOpen}
           variant="permanent"
           PaperProps={{
             sx: {
-              boxShadow:  "0 9px 17.5px rgb(0,0,0,0.05)",
+              boxShadow: "0 9px 17.5px rgb(0,0,0,0.05)",
               width: sidebarWidth,
               boxSizing: "border-box",
               borderRight: 0,
@@ -48,24 +46,15 @@ const Sidebar = ({
             },
           }}
         >
-          {/* ------------------------------------------- */}
-          {/* Sidebar Box */}
-          {/* ------------------------------------------- */}
           <Box
             sx={{
               height: "100%",
             }}
           >
-            {/* ------------------------------------------- */}
-            {/* Logo */}
-            {/* ------------------------------------------- */}
             <Box px={3}>
               <Logo />
             </Box>
             <Box>
-              {/* ------------------------------------------- */}
-              {/* Sidebar Items */}
-              {/* ------------------------------------------- */}
               <SidebarItems />
             </Box>
           </Box>
@@ -83,19 +72,13 @@ const Sidebar = ({
       PaperProps={{
         sx: {
           width: sidebarWidth,
-          boxShadow: (theme) => theme.shadows[8],
+          boxShadow: (theme: any) => theme.shadows[8],
         },
       }}
     >
-      {/* ------------------------------------------- */}
-      {/* Logo */}
-      {/* ------------------------------------------- */}
       <Box px={2}>
         <Logo />
       </Box>
-      {/* ------------------------------------------- */}
-      {/* Sidebar For Mobile */}
-      {/* ------------------------------------------- */}
       <SidebarItems />
     </Drawer>
   );

@@ -1,7 +1,7 @@
 "use client";
 import { baselightTheme } from "@/utils/theme/DefaultColors";
-import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import { ThemeProvider } from "@/utils/theme/ThemeContext";
 
 export default function RootLayout({
   children,
@@ -16,7 +16,7 @@ export default function RootLayout({
     <html lang="en">
       <title>{metadata.title}</title>
       <body>
-        <ThemeProvider theme={baselightTheme}>
+        <ThemeProvider>
           <CssBaseline />
           {children}
         </ThemeProvider>

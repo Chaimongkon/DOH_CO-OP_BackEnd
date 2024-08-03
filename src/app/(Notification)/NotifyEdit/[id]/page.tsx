@@ -16,7 +16,7 @@ interface FormData {
 }
 
 
-const NotifiEdit = () => {
+const NotifyEdit = () => {
   const router = useRouter();
   const { id } = useParams();
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -27,7 +27,7 @@ const NotifiEdit = () => {
   });
   const fetchImages = useCallback(async () => {
     try {
-      const response = await fetch(`${API}/Notifications/ShowById/${id}`);
+      const response = await fetch(`${API}/Notifications/GetById/${id}`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -114,7 +114,7 @@ const NotifiEdit = () => {
               showConfirmButton: false,
               timer: 1500,
             }).then(() => {
-              router.push(`/NotifiShowAll`);
+              router.push(`/NotifyAll`);
             });
           } else {
             Swal.fire({
@@ -140,7 +140,7 @@ const NotifiEdit = () => {
     fetchImages();
   }, [fetchImages]);
   return (
-    <DashboardCard title="Edit Slides">
+    <DashboardCard title="Edit Notification">
       <form className="forms-sample" onSubmit={handleSubmit}>
         <Box component="section" sx={{ p: 2 }}>
           <div
@@ -210,7 +210,7 @@ const NotifiEdit = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => router.push(`/NotifiShowAll`)}
+              onClick={() => router.push(`/NotifyAll`)}
             >
               Cancel
             </Button>
@@ -221,4 +221,4 @@ const NotifiEdit = () => {
   );
 };
 
-export default NotifiEdit;
+export default NotifyEdit;

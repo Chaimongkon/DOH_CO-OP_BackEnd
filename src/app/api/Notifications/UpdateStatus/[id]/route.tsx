@@ -18,9 +18,8 @@ export async function PUT(
       [status, id]
     );
 
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
+    return NextResponse.json({
+      message: "Update Status successful",
     });
   } catch (error) {
     const errorMessage =

@@ -29,7 +29,7 @@ const SlideEdit = () => {
   });
   const fetchImages = useCallback(async () => {
     try {
-      const response = await fetch(`${API}/Slides/ShowById/${id}`);
+      const response = await fetch(`${API}/Slides/GetById/${id}`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -118,7 +118,7 @@ const SlideEdit = () => {
               showConfirmButton: false,
               timer: 1500,
             }).then(() => {
-              router.push(`/SlideShowAll`);
+              router.push(`/SlideAll`);
             });
           } else {
             Swal.fire({
@@ -226,7 +226,7 @@ const SlideEdit = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => router.push(`/SlideShowAll`)}
+              onClick={() => router.push(`/SlideAll`)}
             >
               Cancel
             </Button>
