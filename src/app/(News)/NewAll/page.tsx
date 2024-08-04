@@ -56,9 +56,20 @@ interface Data {
   File: string;
 }
 
+const base64ToBlobUrl = (base64: string, type: string) => {
+  const byteCharacters = atob(base64);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  const blob = new Blob([byteArray], { type });
+  return URL.createObjectURL(blob);
+};
+
 export default function NewAll() {
   const theme = useTheme();
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [rows, setRows] = useState<Data[]>([]);
@@ -75,14 +86,18 @@ export default function NewAll() {
     currentPage.current = newPage;
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
     currentPage.current = 0;
   };
 
   const getPaginatedData = useCallback(() => {
-    let url = `${API}News/GetAll?page=${currentPage.current + 1}&per_page=${rowsPerPage}`;
+    let url = `${API}News/GetAll?page=${
+      currentPage.current + 1
+    }&per_page=${rowsPerPage}`;
     if (search) {
       url += `&search=${search}`;
     }
@@ -101,7 +116,8 @@ export default function NewAll() {
   }, [page, rowsPerPage, getPaginatedData]);
 
   const handleClickOpen = (base64: string) => {
-    setPdfBase64(base64);
+    const blobUrl = base64ToBlobUrl(base64, "application/pdf");
+    setPdfBase64(blobUrl);
     setOpen(true);
   };
 
@@ -124,7 +140,11 @@ export default function NewAll() {
       }
     } catch (error) {
       console.error("Failed to delete news:", error);
-      Swal.fire("Error!", "An error occurred while deleting the news.", "error");
+      Swal.fire(
+        "Error!",
+        "An error occurred while deleting the news.",
+        "error"
+      );
     }
   };
 
@@ -185,7 +205,7 @@ export default function NewAll() {
             </Button>
           </Link>
         </Paper>
-        <Paper >
+        <Paper>
           <TableContainer>
             <Table stickyHeader aria-label="sticky table">
               <TableHead>
@@ -215,7 +235,9 @@ export default function NewAll() {
                                 size="small"
                                 color="warning"
                                 startIcon={<EditIcon />}
-                                onClick={() => router.push(`/NewEdit/${row.Id}`)}
+                                onClick={() =>
+                                  router.push(`/NewEdit/${row.Id}`)
+                                }
                               >
                                 Edit
                               </Button>
@@ -238,7 +260,10 @@ export default function NewAll() {
                             <TableCell key={column.id} align={column.align}>
                               {column.id === "Image" ? (
                                 <img
-                                  src={`data:;base64,${value}`}
+                                  src={base64ToBlobUrl(
+                                    value as string,
+                                    "image/webp"
+                                  )}
                                   alt={row.Title}
                                   style={{ width: "100px" }}
                                 />
@@ -246,7 +271,9 @@ export default function NewAll() {
                                 <Button
                                   variant="contained"
                                   size="small"
-                                  onClick={() => handleClickOpen(value as string)}
+                                  onClick={() =>
+                                    handleClickOpen(value as string)
+                                  }
                                 >
                                   View PDF
                                 </Button>
@@ -277,7 +304,7 @@ export default function NewAll() {
             <DialogContent>
               {pdfBase64 && (
                 <iframe
-                  src={`data:application/pdf;base64,${pdfBase64}`}
+                  src={pdfBase64}
                   width="100%"
                   height="600px"
                   title="PDF Preview"

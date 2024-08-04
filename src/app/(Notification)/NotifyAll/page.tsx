@@ -28,6 +28,17 @@ interface Notifi {
   status: boolean;
 }
 
+const base64ToBlobUrl = (base64: string) => {
+  const byteCharacters = atob(base64);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  const blob = new Blob([byteArray], { type: 'image/webp' }); // adjust the type if necessary
+  return URL.createObjectURL(blob);
+};
+
 const NotifyAll = () => {
   const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -101,11 +112,11 @@ const NotifyAll = () => {
       const data = await response.json();
 
       // Assuming the image data is base64 encoded
-      const processedData = data.map((slide: any) => ({
-        id: slide.Id,
-        image: `data:;base64,${slide.Image}`,
-        url: slide.URLLink,
-        status: slide.IsActive,
+      const processedData = data.map((notify: any) => ({
+        id: notify.Id,
+        image: base64ToBlobUrl(notify.Image),
+        url: notify.URLLink,
+        status: notify.IsActive,
       }));
 
       setNotifi(processedData);

@@ -1,21 +1,33 @@
 import { NextResponse } from "next/server";
 import pool from "../../../db/mysql";
+import { RowDataPacket, FieldPacket } from "mysql2";
+
+// Define the types for the query results
+interface SlideRow extends RowDataPacket {
+  Id: number;
+  No: number;
+  Image: Buffer;
+  URLLink: string;
+}
 
 export async function GET() {
+  let db;
   try {
-    const db = await pool.getConnection();
+    db = await pool.getConnection();
     const query = "SELECT Id, No, Image, URLLink FROM slides ORDER BY No ASC";
-    const [rows]: [any[], any] = await db.execute(query); // Ensure rows is correctly typed
-    db.release();
+    const [rows]: [SlideRow[], FieldPacket[]] = await db.execute(query);
 
     // Process the rows to convert the Image field to base64 string
     const processedRows = rows.map((row) => ({
       ...row,
-      Image: Buffer.from(row.Image).toString('base64'), // Convert BLOB to base64
+      Image: row.Image ? Buffer.from(row.Image).toString('base64') : null,
     }));
 
     return NextResponse.json(processedRows, { status: 200 });
-  } catch (error: unknown) {
-    // ... (error handling logic remains the same)
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  } finally {
+    if (db) db.release();
   }
 }

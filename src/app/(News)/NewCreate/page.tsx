@@ -7,7 +7,6 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CancelIcon from "@mui/icons-material/Cancel";
 import FlipCameraAndroidIcon from "@mui/icons-material/FlipCameraAndroid";
 import { useRouter } from "next/navigation";
-import { title } from "process";
 
 const NewCreate = () => {
   const router = useRouter();
@@ -16,7 +15,7 @@ const NewCreate = () => {
   const [pdf, setPDF] = useState<File | null>(null);
   const [details, setDetails] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
-  const [pdfpreview, setPdfpreview] = useState<any>(null);
+  const [pdfpreview, setPdfpreview] = useState<string>(""); 
   const [isSelectedimg, setIsSelectedimg] = useState(false);
   const [isSelectedPDF, setIsSelectedPDF] = useState(false);
 
@@ -28,6 +27,7 @@ const NewCreate = () => {
   const handleClick = () => {
     hiddenFileInput.current?.click();
   };
+
   const handlePDFClick = () => {
     hiddenPDFFileInput.current?.click();
   };
@@ -66,10 +66,8 @@ const NewCreate = () => {
       const selectedPDF = event.target.files[0];
       const readerpdf = new FileReader();
       readerpdf.readAsDataURL(selectedPDF);
-      readerpdf.onloadend = async () => {
-        const base64Stringpdf = readerpdf.result?.toString().split(",")[1];
-
-        setPdfpreview(base64Stringpdf);
+      readerpdf.onloadend = () => {
+        setPdfpreview(readerpdf.result as string || ""); // Use empty string as fallback
         setPDF(selectedPDF);
         setIsSelectedPDF(true);
       };
@@ -95,7 +93,7 @@ const NewCreate = () => {
 
           if (base64Stringimg && base64Stringpdf) {
             const imageType = image.type;
-            const response = await fetch(`${API}News/Create`, {
+            const response = await fetch(`${API}/News/Create`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -119,15 +117,19 @@ const NewCreate = () => {
                 router.push(`/NewAll`);
               });
               setImage(null);
+              setPDF(null);
               setTitle("");
               setDetails("");
               setIsSelectedimg(false);
+              setIsSelectedPDF(false);
               setPreview(null);
+              setPdfpreview(""); // Reset to empty string
             } else {
+              const errorData = await response.json();
               Swal.fire({
                 icon: "error",
                 title: "Oops...",
-                text: "Failed to upload image.",
+                text: `Failed to upload: ${errorData.error}`,
               });
             }
           }
@@ -200,9 +202,7 @@ const NewCreate = () => {
                 <center>
                   <img height="206px" src={preview ?? ""} alt="Preview" />
                   <br />
-
                   <h6>Filename: {image?.name}</h6>
-
                   <br />
                   <Button
                     variant="contained"
@@ -210,7 +210,7 @@ const NewCreate = () => {
                     endIcon={<FlipCameraAndroidIcon />}
                     onClick={handleClick}
                   >
-                    Chang Image
+                    Change Image
                   </Button>
                 </center>
               </div>
@@ -245,7 +245,6 @@ const NewCreate = () => {
             />
           </div>
         </Box>
-        {/* PDF File Select */}
         <Box component="section" sx={{ p: 2 }}>
           <div
             className="form-group"
@@ -261,19 +260,17 @@ const NewCreate = () => {
             </label>
             <br />
             <br />
-            {isSelectedPDF ? (
+            {isSelectedPDF && pdfpreview ? (
               <div>
                 <center>
                   <iframe
-                    src={`data:application/pdf;base64,${pdfpreview}`}
+                    src={pdfpreview}
                     width="100%"
                     height="600px"
                     title="PDF Preview"
                   />
                   <br />
-
                   <h6>Filename: {pdf?.name}</h6>
-
                   <br />
                   <Button
                     variant="contained"
@@ -297,14 +294,14 @@ const NewCreate = () => {
                   />
                   <br />
                   <br />
-                  <h6>Upload Image File</h6>
+                  <h6>Upload PDF File</h6>
                 </center>
               </div>
             )}
             <input
               type="file"
               accept="application/pdf"
-              name="image"
+              name="pdf"
               onChange={handlePDF}
               ref={hiddenPDFFileInput}
               style={{

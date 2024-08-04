@@ -1,6 +1,6 @@
 "use client";
 import { Autocomplete, Box, Button, Stack, TextField } from "@mui/material";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Swal from "sweetalert2";
 import DashboardCard from "@/app/components/shared/DashboardCard";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -9,32 +9,33 @@ import FlipCameraAndroidIcon from "@mui/icons-material/FlipCameraAndroid";
 import { useRouter } from "next/navigation";
 
 interface MonthOption {
-  label: string;
+  data: string;
 }
 
 const AssetsLiabilitiesCreate = () => {
   const router = useRouter();
-  const [year, setYear] = useState("");
+  const currentYear = new Date().getFullYear();
+  const [year, setYear] = useState((currentYear + 543).toString());
   const [pdf, setPDF] = useState<File | null>(null);
   const [titleMonth, setTitleMonth] = useState<MonthOption | null>(null);
   const [pdfpreview, setPdfpreview] = useState<any>(null);
   const [isSelectedPDF, setIsSelectedPDF] = useState(false);
-  console.log(year);
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
   const Month: MonthOption[] = [
-    { label: "เดือน มกราคม" },
-    { label: "เดือน กุมภาพันธ์" },
-    { label: "เดือน มีนาคม" },
-    { label: "April" },
-    { label: "May" },
-    { label: "June" },
-    { label: "July" },
-    { label: "August" },
-    { label: "September" },
-    { label: "October" },
-    { label: "November" },
-    { label: "December" },
+    { data: "มกราคม" },
+    { data: "กุมภาพันธ์" },
+    { data: "มีนาคม" },
+    { data: "เมษายน" },
+    { data: "พฤษภาคคม" },
+    { data: "มิถุนายน" },
+    { data: "กรกฎาคม" },
+    { data: "สิงหาคม" },
+    { data: "กันยายน" },
+    { data: "ตุลาคม" },
+    { data: "พฤศจิกายายน" },
+    { data: "ธันวาคม" },
   ];
+
   const hiddenPDFFileInput = useRef<HTMLInputElement | null>(null);
 
   const handlePDFClick = () => {
@@ -76,7 +77,7 @@ const AssetsLiabilitiesCreate = () => {
             },
             body: JSON.stringify({
               year: year,
-              titleMonth: titleMonth,
+              titleMonth: titleMonth?.data,
               pdf: `data:application/pdf;base64,${base64Stringpdf}`,
             }),
           });
@@ -89,7 +90,7 @@ const AssetsLiabilitiesCreate = () => {
               showConfirmButton: false,
               timer: 1500,
             }).then(() => {
-              router.push(`/NewAll`);
+              router.push(`/AssetsLiabilitiesAll`);
             });
           } else {
             Swal.fire({
@@ -108,7 +109,10 @@ const AssetsLiabilitiesCreate = () => {
       });
     }
   };
-
+  useEffect(() => {
+    const gregorianYear = parseInt(year) - 543;
+    setYear((gregorianYear + 543).toString());
+  }, [year]);
   return (
     <DashboardCard title="Create News">
       <form className="forms-sample" onSubmit={handleSubmit}>
@@ -124,22 +128,23 @@ const AssetsLiabilitiesCreate = () => {
           />
         </Box>
         <Box component="section" sx={{ p: 2 }}>
-        <Autocomplete
-      fullWidth
-      id="combo-box-demo"
-      options={Month}
-      size="small"
-      getOptionLabel={(option) => option.label}
-      isOptionEqualToValue={(option, value) => option.label === value.label}
-      onChange={(event: any, newValue: MonthOption | null) => setTitleMonth(newValue)}
-      value={titleMonth}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label="ประจำเดือน"
-        />
-      )}
-    />
+          <Autocomplete
+            fullWidth
+            id="combo-box-demo"
+            options={Month}
+            size="small"
+            getOptionLabel={(option) => option.data}
+            isOptionEqualToValue={(option, value) =>
+              option.data === value.data
+            }
+            onChange={(event: any, newValue: MonthOption | null) =>
+              setTitleMonth(newValue)
+            }
+            value={titleMonth}
+            renderInput={(params) => (
+              <TextField {...params} label="ประจำเดือน" />
+            )}
+          />
         </Box>
         {/* PDF File Select */}
         <Box component="section" sx={{ p: 2 }}>

@@ -26,6 +26,17 @@ interface Image {
   url: string;
 }
 
+const base64ToBlobUrl = (base64: string) => {
+  const byteCharacters = atob(base64);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  const blob = new Blob([byteArray], { type: 'image/webp' }); // adjust the type if necessary
+  return URL.createObjectURL(blob);
+};
+
 const SlideAll = () => {
   const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -40,11 +51,10 @@ const SlideAll = () => {
       }
       const data = await response.json();
 
-      // Assuming the image data is base64 encoded
       const processedData = data.map((slide: any) => ({
         id: slide.Id,
         no: slide.No,
-        image: `data:;base64,${slide.Image}`,
+        image: base64ToBlobUrl(slide.Image),
         url: slide.URLLink,
       }));
 

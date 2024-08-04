@@ -1,9 +1,10 @@
 import styled from "@emotion/styled";
 import {
-  IconChartDonutFilled,
+  IconChartDonut,
   IconLayoutDashboard,
   IconPercentage100,
   IconPhoto,
+  IconCircleArrowDown,
 } from "@tabler/icons-react";
 import { uniqueId } from "lodash";
 const StyledIcon = styled(IconPercentage100)`
@@ -53,19 +54,44 @@ const MenuItems = [
   {
     id: uniqueId(),
     title: "ผลการดำเนินงาน",
-    icon: IconChartDonutFilled,
+    icon: IconChartDonut,
     children: [
       {
         id: uniqueId(),
         icon: StyledIcon,
         title: "รายการสิ้นทรัพย์ย่อ",
-        href: "/utilities/typography/typography",
+        href: "/AssetsLiabilitiesAll",
       },
       {
         id: uniqueId(),
         icon: StyledIcon,
         title: "เอกสารประชุมใหญ่",
-        href: "/utilities/typography/typography2",
+        href: "/",
+      },
+    ],
+  },
+  {
+    id: uniqueId(),
+    title: "ดาวน์โหลดเอกสาร",
+    icon: IconCircleArrowDown,
+    children: [
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "แบบฟอร์มสวัสดิการ",
+        href: "/",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "แบบฟอร์มสมัครสมาชิก",
+        href: "/",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "แบบฟอร์มเงินฝาก - ถอน",
+        href: "/",
       },
     ],
   },
