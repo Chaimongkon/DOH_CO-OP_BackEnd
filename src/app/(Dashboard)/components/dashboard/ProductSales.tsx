@@ -1,10 +1,11 @@
-
 import dynamic from "next/dynamic";
-const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
+import { useState, useEffect } from "react";
 import { useTheme } from '@mui/material/styles';
 import { Stack, Typography, Avatar, Fab } from '@mui/material';
 import { IconArrowDownRight, IconCurrencyDollar } from '@tabler/icons-react';
 import DashboardCard from '@/app/(Dashboard)/components/shared/DashboardCard';
+
+const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 const ProductSales = () => {
   // chart color
@@ -12,6 +13,31 @@ const ProductSales = () => {
   const primary = theme.palette.primary.main;
   const secondary = theme.palette.secondary.main;
   const errorlight = '#fdede8';
+  const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  // State to hold the fetched data
+  const [todayCounts, setTodayCounts] = useState<string | null>(null);
+
+  // Fetch visits data
+  useEffect(() => {
+    const fetchVisits = async () => {
+      try {
+        const response = await fetch(`${API}/Visits/GetAll`);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+
+        setTodayCounts(data.todayCount);
+
+        
+      } catch (error) {
+        console.error("Failed to fetch visits:", error);
+      }
+    };
+
+    fetchVisits();
+  }, [API]);
 
   // chart
   const optionscolumnchart: any = {
@@ -44,6 +70,7 @@ const ProductSales = () => {
       theme: theme.palette.mode === 'dark' ? 'dark' : 'light',
     },
   };
+
   const seriescolumnchart: any = [
     {
       name: '',
@@ -54,9 +81,9 @@ const ProductSales = () => {
 
   return (
     <DashboardCard
-      title="Product Sales"
+      title="จำนวนเข้าชมเว็บไซต์(วันนี้)"
       action={
-        <Fab color="error" size="medium" sx={{color: '#ffffff'}}>
+        <Fab color="error" size="medium" sx={{ color: '#ffffff' }}>
           <IconCurrencyDollar width={24} />
         </Fab>
       }
@@ -66,7 +93,7 @@ const ProductSales = () => {
     >
       <>
         <Typography variant="h3" fontWeight="700" mt="-20px">
-          $6,820
+          {todayCounts !== null ? todayCounts : 'Loading...'} ครั้ง
         </Typography>
         <Stack direction="row" spacing={1} my={1} alignItems="center">
           <Avatar sx={{ bgcolor: errorlight, width: 21, height: 21 }}>

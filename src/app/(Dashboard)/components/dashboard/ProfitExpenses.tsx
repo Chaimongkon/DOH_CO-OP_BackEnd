@@ -16,6 +16,8 @@ const ProfitExpenses = () => {
   // menu
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  
+
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -32,7 +34,7 @@ const ProfitExpenses = () => {
   const optionscolumnchart: any = {
     chart: {
       type: "bar",
-      fontFamily: "'Plus Jakarta Sans', sans-serif;",
+      fontFamily: "'Mitr', sans-serif;",
       foreColor: "#adb0bb",
       toolbar: {
         show: true,
@@ -99,7 +101,7 @@ const ProfitExpenses = () => {
 
   return (
     <DashboardCard
-      title="Profit & Expenses"
+      title="จำนวนเข้าชมเว็บไซต์"
       action={
         <>
           <IconButton
