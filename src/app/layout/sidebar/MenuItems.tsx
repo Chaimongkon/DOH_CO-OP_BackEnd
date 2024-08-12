@@ -49,6 +49,12 @@ const MenuItems = [
         title: "Notifications",
         href: "/NotifyAll",
       },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "Videos",
+        href: "/VideoAll",
+      },
     ],
   },
   {
