@@ -5,6 +5,7 @@ import {
   IconPercentage100,
   IconPhoto,
   IconCircleArrowDown,
+  IconHomeCog,
 } from "@tabler/icons-react";
 import { uniqueId } from "lodash";
 const StyledIcon = styled(IconPercentage100)`
@@ -54,6 +55,37 @@ const MenuItems = [
         icon: StyledIcon,
         title: "Videos",
         href: "/VideoAll",
+      },
+    ],
+  },
+  {
+    id: uniqueId(),
+    title: "เกี่ยวกับสหกรณ์ฯ",
+    icon: IconHomeCog,
+    children: [
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "ประวัติสหกรณ์",
+        href: "/AssetsLiabilitiesAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "ค่านิยม วิสัยทัศน์ พันธกิจ",
+        href: "/",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "จรรยาบรรณคณะกรมมการดำเนินการ",
+        href: "/",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "จรรยาบรรณเจ้าหน้าที่",
+        href: "/",
       },
     ],
   },
