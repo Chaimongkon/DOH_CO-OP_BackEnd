@@ -1,51 +1,109 @@
 "use client";
-import {  Paper, Typography } from "@mui/material";
+import { Paper, Typography } from "@mui/material";
 import PageContainer from "@/app/(Dashboard)/components/container/PageContainer";
 import DashboardCard from "@/app/(Dashboard)/components/shared/DashboardCard";
 import {
   EditOutlined,
   VideoCameraOutlined,
   DeleteOutlined,
+  PlusCircleOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons";
-import { Avatar, Card } from "antd";
+import { Avatar, Card, Button, ConfigProvider, Modal, Space } from "antd";
 import Link from "next/link";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-const { Meta } = Card;
-import React, { useContext, useState } from "react";
-import { Button, ConfigProvider, Modal, Space } from "antd";
+import React, { useContext, useState, useCallback, useEffect } from "react";
 import { createStyles, useTheme } from "antd-style";
 import { css } from "@emotion/css";
-import { CloseCircleOutlined, PlusCircleOutlined  } from "@ant-design/icons";
-import type { ConfigProviderProps } from 'antd';
+import axios from "axios";
+import Swal from "sweetalert2";
+import { useRouter } from "next/navigation";
+
+const avatarImages = [
+  "/images/Icon/bottts-1.png",
+  "/images/Icon/bottts-2.png",
+  "/images/Icon/bottts-3.png",
+  "/images/Icon/bottts-4.png",
+  "/images/Icon/bottts-5.png",
+];
+const { Meta } = Card;
 
 const useStyle = createStyles(({ token }) => ({
-    "my-modal-body": {
-      background: token.blue1,
-      padding: token.paddingSM,
-    },
-    "my-modal-mask": {
-      boxShadow: `inset 0 0 15px #fff`,
-    },
-    "my-modal-header": {
-      borderBottom: `1px dotted ${token.colorPrimary}`,
-    },
-    "my-modal-footer": {
-      color: token.colorPrimary,
-    },
-    "my-modal-content": {
-      border: "1px solid #333",
-    },
-  }));
-  type SizeType = ConfigProviderProps['componentSize'];
-const SamplePage = () => {
+  "my-modal-body": {
+    background: token.blue1,
+    padding: token.paddingSM,
+  },
+  "my-modal-mask": {
+    boxShadow: `inset 0 0 15px #fff`,
+  },
+  "my-modal-header": {
+    borderBottom: `1px dotted ${token.colorPrimary}`,
+  },
+  "my-modal-footer": {
+    color: token.colorPrimary,
+  },
+  "my-modal-content": {
+    border: "1px solid #333",
+  },
+}));
+
+type SizeType = "large" | "middle" | "small";
+interface Video {
+  id: number;
+  title: string;
+  youTubeUrl: string;
+  details: string;
+}
+
+const getRandomAvatar = () => {
+  const randomIndex = Math.floor(Math.random() * avatarImages.length);
+  return avatarImages[randomIndex];
+};
+
+const VideoPage = () => {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const { styles } = useStyle();
   const token = useTheme();
   const { getPrefixCls } = useContext(ConfigProvider.ConfigContext);
   const rootPrefixCls = getPrefixCls();
-  const [size, setSize] = useState<SizeType>('large');
+  const [size, setSize] = useState<SizeType>("middle");
+  const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  const getYouTubeVideoId = (url: string) => {
+    const regex =
+      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|watch)\?.*v=|embed\/)|youtu\.be\/)([^\s&]+)/;
+    const match = url.match(regex);
+    return match && match[1] ? match[1] : null;
+  };
+
+  const fetchVideos = useCallback(async () => {
+    try {
+      const response = await fetch(`${API}/Videos/GetAll`);
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.json();
+
+      const processedData = data.map((video: any) => ({
+        id: video.Id,
+        title: video.Title,
+        youTubeUrl: video.YouTubeUrl,
+        details: video.Details,
+      }));
+
+      setVideos(processedData);
+    } catch (error) {
+      console.error("Failed to fetch Videos:", error);
+    }
+  }, [API]);
+
+  useEffect(() => {
+    fetchVideos();
+  }, [fetchVideos]);
 
   const classNames = {
     body: styles["my-modal-body"],
@@ -53,6 +111,7 @@ const SamplePage = () => {
     header: styles["my-modal-header"],
     content: styles["my-modal-content"],
   };
+
   const modalStyles = {
     header: {
       borderLeft: `5px solid ${token.colorPrimary}`,
@@ -70,6 +129,7 @@ const SamplePage = () => {
       boxShadow: "0 0 30px #999",
     },
   };
+
   const linearGradientButton = css`
     &.${rootPrefixCls}-btn-primary:not([disabled]):not(
         .${rootPrefixCls}-btn-dangerous
@@ -93,8 +153,38 @@ const SamplePage = () => {
       }
     }
   `;
-  const showModal = () => {
+
+  const showModal = (video: Video) => {
+    setSelectedVideo(video);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
     setIsModalOpen(false);
+    setSelectedVideo(null);
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      const response = await axios.delete(`${API}/Videos/Delete`, {
+        data: { id },
+      });
+      if (response.status === 200) {
+        Swal.fire("Deleted!", "The slide has been deleted.", "success");
+        setVideos((prevVideos) =>
+          prevVideos.filter((Video) => Video.id !== id)
+        );
+      } else {
+        Swal.fire("Error!", "Failed to delete the slide.", "error");
+      }
+    } catch (error) {
+      console.error("Failed to delete slide:", error);
+      Swal.fire(
+        "Error!",
+        "An error occurred while deleting the slide.",
+        "error"
+      );
+    }
   };
 
   return (
@@ -105,17 +195,15 @@ const SamplePage = () => {
             <Box display="flex" justifyContent="space-between" mb={2}>
               <Box></Box>
               <Link href="/VideoCreate">
-                {/* <Button
-                  variant="contained"
-                  size="small"
-                  color="success"
-                  startIcon={<AddCircleIcon />}
+                <Button
+                  type="primary"
+                  shape="round"
+                  icon={<PlusCircleOutlined />}
+                  size={size}
+                  style={{ background: "#4BD08B" }}
                 >
-                  Add Videos
-                </Button> */}
-                <Button type="primary" shape="round"  green-10 icon={<PlusCircleOutlined />} size={size}>
-            Download
-          </Button>
+                  Add Video
+                </Button>
               </Link>
             </Box>
             <Box
@@ -130,43 +218,62 @@ const SamplePage = () => {
                 flexDirection: { xs: "column", sm: "row" },
               }}
             >
-              <Card
-                style={{ width: 300 }}
-                cover={
-                  <iframe
-                    width="100%"
-                    height="200"
-                    src="https://www.youtube.com/embed/B42gQyJMXLE"
-                    title="YouTube Video"
-                    frameBorder="0"
-                    allowFullScreen
-                  ></iframe>
-                }
-                actions={[
-                  <VideoCameraOutlined
-                    key="youtube"
-                    onClick={() => setIsModalOpen(true)}
-                  />,
-                  <EditOutlined key="edit" />,
-                  <DeleteOutlined key="delete" />,
-                ]}
-              >
-                <Meta
-                  avatar={
-                    <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=8" />
+              {videos.map((video) => (
+                <Card
+                  key={video.id}
+                  style={{ width: 300 }}
+                  cover={
+                    <div style={{ position: "relative", cursor: "pointer" }}>
+                      <img
+                        width="100%"
+                        height="200"
+                        src={`https://img.youtube.com/vi/${getYouTubeVideoId(
+                          video.youTubeUrl
+                        )}/hqdefault.jpg`}
+                        alt="Video Thumbnail"
+                        style={{ objectFit: "cover" }}
+                        onClick={() => showModal(video)}
+                      />
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "50%",
+                          left: "50%",
+                          transform: "translate(-50%, -50%)",
+                          fontSize: "3rem",
+                          color: "#fff",
+                          pointerEvents: "none",
+                        }}
+                      ></div>
+                    </div>
                   }
-                  title="“กู้สหกรณ์ ทำไมต้องยื่นเครดิตบูโร”"
-                  description="This is the description"
-                  style={{ fontFamily: "Mitr" }}
-                />
-              </Card>
+                  actions={[
+                    <VideoCameraOutlined
+                      key="youtube"
+                      onClick={() => showModal(video)}
+                    />,
+                    <EditOutlined key="edit" onClick={() => router.push(`/VideoEdit/${video.id}`)}/>,
+                    <DeleteOutlined
+                      key="delete"
+                      onClick={() => handleDelete(video.id)}
+                    />,
+                  ]}
+                >
+                  <Meta
+                    avatar={<Avatar src={getRandomAvatar()} />}
+                    title={video.title}
+                    description={video.details}
+                    style={{ fontFamily: "Mitr" }}
+                  />
+                </Card>
+              ))}
             </Box>
             <Space></Space>
             <Modal
               title=""
               open={isModalOpen}
-              onOk={showModal}
-              onCancel={showModal}
+              onOk={handleModalClose}
+              onCancel={handleModalClose}
               classNames={classNames}
               styles={modalStyles}
               width={700}
@@ -177,27 +284,30 @@ const SamplePage = () => {
                       className: linearGradientButton,
                     }}
                   >
- 
-                     <Button
+                    <Button
                       type="primary"
                       size="large"
                       icon={<CloseCircleOutlined />}
-                      onClick={showModal}
+                      onClick={handleModalClose}
                     >
                       ปิด
-                    </Button> 
+                    </Button>
                   </ConfigProvider>
                 </center>
               )}
             >
-              <iframe
-                width="100%"
-                height="370"
-                src="https://www.youtube.com/embed/B42gQyJMXLE"
-                title="YouTube Video"
-                frameBorder="0"
-                allowFullScreen
-              ></iframe>
+              {selectedVideo && (
+                <iframe
+                  width="100%"
+                  height="370"
+                  src={`https://www.youtube.com/embed/${getYouTubeVideoId(
+                    selectedVideo.youTubeUrl
+                  )}`}
+                  title="YouTube Video"
+                  frameBorder="0"
+                  allowFullScreen
+                ></iframe>
+              )}
             </Modal>
             <ConfigProvider
               modal={{
@@ -212,4 +322,4 @@ const SamplePage = () => {
   );
 };
 
-export default SamplePage;
+export default VideoPage;

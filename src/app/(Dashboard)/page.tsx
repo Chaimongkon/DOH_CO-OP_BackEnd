@@ -2,12 +2,13 @@
 import { Grid, Box } from '@mui/material';
 import PageContainer from '@/app/(Dashboard)/components/container/PageContainer';
 // components
-import ProfitExpenses from '@/app/(Dashboard)/components/dashboard/ProfitExpenses';
 import TrafficDistribution from '@/app/(Dashboard)/components/dashboard/TrafficDistribution';
 import UpcomingSchedules from '@/app/(Dashboard)/components/dashboard/UpcomingSchedules';
 import TopPayingClients from '@/app/(Dashboard)/components/dashboard/TopPayingClients';
 
-import ProductSales from '@/app/(Dashboard)/components/dashboard/ProductSales';
+
+import NumberOfWebsiteVisitsPerDay from './components/dashboard/NumberOfWebsiteVisitsPerDay';
+import NumberOfWebsiteVisitsToDay from './components/dashboard/NumberOfWebsiteVisitsToDay';
 
 const Dashboard = () => {
   return (
@@ -15,15 +16,15 @@ const Dashboard = () => {
       <Box>
         <Grid container spacing={3}>
           <Grid item xs={12} lg={8}>
-            <ProfitExpenses />
+            <NumberOfWebsiteVisitsPerDay />
           </Grid>
           <Grid item xs={12} lg={4}>
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <TrafficDistribution />
+                <NumberOfWebsiteVisitsToDay />
               </Grid>
               <Grid item xs={12}>
-                <ProductSales />
+                <TrafficDistribution />
               </Grid>
             </Grid>
           </Grid>

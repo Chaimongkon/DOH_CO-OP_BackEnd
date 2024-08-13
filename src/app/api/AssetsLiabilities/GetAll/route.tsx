@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   let db;
   try {
     db = await pool.getConnection();
-    const query = "SELECT Year, TitleMonth, PdfFile FROM assetsliabilities ORDER BY Year DESC";
+    const query = "SELECT Id, Year, TitleMonth, PdfFile FROM assetsliabilities ORDER BY Year DESC";
     
     const [rows]: [NewsRow[], FieldPacket[]] = await db.execute(query);
 

@@ -90,45 +90,60 @@ const SlideEdit = () => {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    const { image, no, url } = formData;
-    if (image) {
+    const { image, no, url, imageUrl } = formData;
+  
+    let base64Image: string | null = null;
+  
+    if (image && image instanceof File) {
+      // If a new image file is uploaded, convert it to base64
       const reader = new FileReader();
-      reader.readAsDataURL(image);
+      reader.readAsDataURL(image as Blob);
       reader.onloadend = async () => {
         const base64String = reader.result?.toString().split(",")[1];
-  
+    
         if (base64String) {
-          const response = await fetch(`${API}/Slides/Edit/${id}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              no: no,
-              image: `data:;base64,${base64String}`,
-              urllink: url,
-            }),
-          });
-  
-          if (response.ok) {
-            Swal.fire({
-              position: "top-end",
-              icon: "success",
-              title: "UPDATE SUCCESSFULLY",
-              showConfirmButton: false,
-              timer: 1500,
-            }).then(() => {
-              router.push(`/SlideAll`);
-            });
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Oops...",
-              text: "Failed to upload image.",
-            });
-          }
+          base64Image = `data:;base64,${base64String}`;
+          await submitForm(base64Image);
         }
       };
+    } else {
+      // If no new image is uploaded, use the existing imageUrl
+      base64Image = imageUrl;
+      await submitForm(base64Image);
+    }
+  };
+  
+  const submitForm = async (base64Image: string | null) => {
+    const { no, url } = formData;
+  
+    const response = await fetch(`${API}/Slides/Edit/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        no: no,
+        image: base64Image,
+        urllink: url,
+      }),
+    });
+  
+    if (response.ok) {
+      Swal.fire({
+        position: "top-end",
+        icon: "success",
+        title: "UPDATE SUCCESSFULLY",
+        showConfirmButton: false,
+        timer: 1500,
+      }).then(() => {
+        router.push(`/SlideAll`);
+      });
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Failed to upload image.",
+      });
     }
   };
   
@@ -165,7 +180,7 @@ const SlideEdit = () => {
             <div className="form-group">
               <center>
                 {formData.imageUrl && (
-                  <img height="256px" src={formData.imageUrl} alt="Preview" />
+                  <img height="256px" src={formData.imageUrl || "/images/backgrounds/upload-image.png"} alt="Preview" />
                 )}
                 <br />
                 <br />

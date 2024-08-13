@@ -230,7 +230,7 @@ const AssetsLiabilitiesCreate = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => router.push(`/NewAll`)}
+              onClick={() => router.push(`/AssetsLiabilitiesAll`)}
             >
               Cancel
             </Button>
