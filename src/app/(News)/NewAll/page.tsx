@@ -229,15 +229,14 @@ export default function NewAll() {
                         if (column.id === "Actions") {
                           return (
                             <TableCell key={column.id} align={column.align}>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
                               <Button
                                 component="label"
                                 variant="contained"
                                 size="small"
                                 color="warning"
                                 startIcon={<EditIcon />}
-                                onClick={() =>
-                                  router.push(`/NewEdit/${row.Id}`)
-                                }
+                                onClick={() => router.push(`/NewEdit/${row.Id}`)}
                               >
                                 Edit
                               </Button>
@@ -248,11 +247,12 @@ export default function NewAll() {
                                 color="error"
                                 startIcon={<DeleteIcon />}
                                 onClick={() => handleDelete(row.Id)}
-                                sx={{ ml: 1 }}
                               >
                                 Delete
                               </Button>
-                            </TableCell>
+                            </Box>
+                          </TableCell>
+                          
                           );
                         } else {
                           const value = row[column.id as keyof Data];

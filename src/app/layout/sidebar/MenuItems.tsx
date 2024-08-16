@@ -35,7 +35,7 @@ const MenuItems = [
       {
         id: uniqueId(),
         icon: StyledIcon,
-        title: "News",
+        title: "ข่าวประชาสัมพันธ์",
         href: "/NewAll",
       },
       {
@@ -53,7 +53,7 @@ const MenuItems = [
       {
         id: uniqueId(),
         icon: StyledIcon,
-        title: "Videos",
+        title: "วิดีโอ CoopNews",
         href: "/VideoAll",
       },
     ],
@@ -66,26 +66,26 @@ const MenuItems = [
       {
         id: uniqueId(),
         icon: StyledIcon,
-        title: "ประวัติสหกรณ์",
-        href: "/AssetsLiabilitiesAll",
+        title: "รู้จักสหกรณ์ฯ",
+        href: "/CooperativeSocietyAll",
       },
       {
         id: uniqueId(),
         icon: StyledIcon,
-        title: "ค่านิยม วิสัยทัศน์ พันธกิจ",
-        href: "/",
+        title: "คณะกรรมการดำเนินการ",
+        href: "/BoardOrganizational",
       },
       {
         id: uniqueId(),
         icon: StyledIcon,
-        title: "จรรยาบรรณคณะกรมมการดำเนินการ",
-        href: "/",
+        title: "ผู้ตรวจสอบบัญชีและผู้ตรวจสอบกิจการ",
+        href: "/AuditorsOrganizational",
       },
       {
         id: uniqueId(),
         icon: StyledIcon,
-        title: "จรรยาบรรณเจ้าหน้าที่",
-        href: "/",
+        title: "เจ้าหน้าที่สหกรณ์ฯ",
+        href: "/OfficerOrganizational",
       },
     ],
   },
