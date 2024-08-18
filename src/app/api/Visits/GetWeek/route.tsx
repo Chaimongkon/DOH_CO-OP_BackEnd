@@ -19,7 +19,7 @@ export async function GET() {
       GROUP BY 
         Date, DayName
       ORDER BY 
-        DateTimeStamp ASC
+        Date ASC
     `);
 
     return NextResponse.json(rows);

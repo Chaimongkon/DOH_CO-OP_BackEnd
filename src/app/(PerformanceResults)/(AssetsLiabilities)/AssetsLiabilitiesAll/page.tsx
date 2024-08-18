@@ -202,7 +202,7 @@ const AssetsLiabilitiesAll = () => {
                                       color="warning"
                                       startIcon={<EditIcon />}
                                       onClick={() =>
-                                        router.push(`/NewEdit/${row.Id}`)
+                                        router.push(`/AssetsLiabilitiesEdit/${row.Id}`)
                                       }
                                     >
                                       Edit

@@ -104,7 +104,7 @@ const MenuItems = [
         id: uniqueId(),
         icon: StyledIcon,
         title: "เอกสารประชุมใหญ่",
-        href: "/",
+        href: "/BusinessReport",
       },
     ],
   },

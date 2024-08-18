@@ -148,7 +148,7 @@ const OrganizationalCreate = () => {
   }, [image]);
 
   return (
-    <DashboardCard title="Create Notification">
+    <DashboardCard title="Create Officer">
       <form className="forms-sample" onSubmit={handleSubmit}>
         <Box component="section" sx={{ p: 2 }}>
           <div

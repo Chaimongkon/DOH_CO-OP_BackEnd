@@ -29,6 +29,8 @@
     "lodash": "^4.17.21",
     "mysql2": "^3.11.0",
     "next": "14.2.5",
+    "pdfjs-dist": "^4.5.136",
+    "puppeteer": "^23.1.0",
     "quill": "^2.0.2",
     "react": "^18",
     "react-apexcharts": "^1.4.1",
@@ -36,6 +38,7 @@
     "react-helmet-async": "^2.0.5",
     "react-hook-form": "^7.52.1",
     "react-quill": "^2.0.0",
+    "sharp": "^0.33.5",
     "sweetalert2": "^11.12.3"
   },
   "devDependencies": {
@@ -43,6 +46,7 @@
     "@types/formidable": "^3.4.5",
     "@types/lodash": "^4.17.7",
     "@types/node": "^20.14.13",
+    "@types/pdfjs-dist": "^2.10.378",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "postcss": "^8",
