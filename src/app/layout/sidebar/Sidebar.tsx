@@ -16,7 +16,7 @@ const Sidebar = ({
 }: ItemType) => {
   const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("sm"));
 
-  const sidebarWidth = "270px";
+  const sidebarWidth = "290px";
 
   if (lgUp) {
     return (

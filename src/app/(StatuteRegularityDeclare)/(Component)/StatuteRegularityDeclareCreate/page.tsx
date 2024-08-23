@@ -7,33 +7,29 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CancelIcon from "@mui/icons-material/Cancel";
 import FlipCameraAndroidIcon from "@mui/icons-material/FlipCameraAndroid";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from 'next/navigation';
 
-interface MonthOption {
+interface MemberOption {
   data: string;
 }
-
-const AssetsLiabilitiesCreate = () => {
+const StatuteRegularityDeclareCreate = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const typeForm = searchParams.get('typeForm');
   const currentYear = new Date().getFullYear();
-  const [year, setYear] = useState((currentYear + 543).toString());
+  const [title, setTitle] = useState("");
   const [pdf, setPDF] = useState<File | null>(null);
-  const [titleMonth, setTitleMonth] = useState<MonthOption | null>(null);
+  const [titleMember, setTitleMember] = useState<MemberOption | null>(null);
   const [pdfpreview, setPdfpreview] = useState<any>(null);
   const [isSelectedPDF, setIsSelectedPDF] = useState(false);
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
-  const Month: MonthOption[] = [
-    { data: "มกราคม" },
-    { data: "กุมภาพันธ์" },
-    { data: "มีนาคม" },
-    { data: "เมษายน" },
-    { data: "พฤษภาคคม" },
-    { data: "มิถุนายน" },
-    { data: "กรกฎาคม" },
-    { data: "สิงหาคม" },
-    { data: "กันยายน" },
-    { data: "ตุลาคม" },
-    { data: "พฤศจิกายายน" },
-    { data: "ธันวาคม" },
+
+  const Member: MemberOption[] = [
+    { data: "สมาชิกสามัญประเภท ก" },
+    { data: "สมาชิกสามัญประเภท ข" },
+    { data: "สมาชิกสมทบ" },
+    { data: "สมาชิกประเภท ก ข สมทบ" },
+    { data: "สหกรณ์ฯ" },
   ];
 
   const hiddenPDFFileInput = useRef<HTMLInputElement | null>(null);
@@ -70,14 +66,15 @@ const AssetsLiabilitiesCreate = () => {
         const base64Stringpdf = readerpdf.result?.toString().split(",")[1];
 
         if (base64Stringpdf) {
-          const response = await fetch(`${API}AssetsLiabilities/Create`, {
+          const response = await fetch(`${API}FormDowsloads/Create`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              year: year,
-              titleMonth: titleMonth?.data,
+              title: title,
+              typeForm: typeForm,
+              typeMember: titleMember?.data,
               pdf: `data:application/pdf;base64,${base64Stringpdf}`,
             }),
           });
@@ -90,7 +87,7 @@ const AssetsLiabilitiesCreate = () => {
               showConfirmButton: false,
               timer: 1500,
             }).then(() => {
-              router.push(`/AssetsLiabilitiesAll`);
+              router.back()
             });
           } else {
             Swal.fire({
@@ -109,40 +106,47 @@ const AssetsLiabilitiesCreate = () => {
       });
     }
   };
-  useEffect(() => {
-    const gregorianYear = parseInt(year) - 543;
-    setYear((gregorianYear + 543).toString());
-  }, [year]);
+
   return (
-    <DashboardCard title="Create AssetsLiabilities">
+    <DashboardCard title={`Create ${typeForm}`}>
       <form className="forms-sample" onSubmit={handleSubmit}>
         <Box component="section" sx={{ p: 2 }}>
           <TextField
             fullWidth
             id="outlined-basic"
-            label="ประจำปี"
+            label="ชื่อฟอร์ม"
             variant="outlined"
             size="small"
-            onChange={(e) => setYear(e.target.value)}
-            value={year}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </Box>
+        <Box component="section" sx={{ p: 2 }}>
+          <TextField
+            fullWidth
+            id="outlined-basic"
+            label="ประเภทฟอร์ม Read Only"
+            size="small"
+            InputProps={{
+              readOnly: true,
+            }}
+            variant="outlined"
+            value={typeForm}
           />
         </Box>
         <Box component="section" sx={{ p: 2 }}>
           <Autocomplete
             fullWidth
             id="combo-box-demo"
-            options={Month}
+            options={Member}
             size="small"
             getOptionLabel={(option) => option.data}
-            isOptionEqualToValue={(option, value) =>
-              option.data === value.data
+            isOptionEqualToValue={(option, value) => option.data === value.data}
+            onChange={(event: any, newValue: MemberOption | null) =>
+              setTitleMember(newValue)
             }
-            onChange={(event: any, newValue: MonthOption | null) =>
-              setTitleMonth(newValue)
-            }
-            value={titleMonth}
+            value={titleMember}
             renderInput={(params) => (
-              <TextField {...params} label="ประจำเดือน" />
+              <TextField {...params} label="ประเภทสมาชิก" />
             )}
           />
         </Box>
@@ -230,7 +234,7 @@ const AssetsLiabilitiesCreate = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => router.push(`/AssetsLiabilitiesAll`)}
+              onClick={() => router.back()}
             >
               Cancel
             </Button>
@@ -241,4 +245,4 @@ const AssetsLiabilitiesCreate = () => {
   );
 };
 
-export default AssetsLiabilitiesCreate;
+export default StatuteRegularityDeclareCreate;

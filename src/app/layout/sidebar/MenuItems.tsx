@@ -6,6 +6,9 @@ import {
   IconPhoto,
   IconCircleArrowDown,
   IconHomeCog,
+  IconShieldCheck,
+  IconFolderOpen,
+  IconApps
 } from "@tabler/icons-react";
 import { uniqueId } from "lodash";
 const StyledIcon = styled(IconPercentage100)`
@@ -22,6 +25,12 @@ const MenuItems = [
     title: "Dashboard",
     icon: IconLayoutDashboard,
     href: "/",
+  },
+  {
+    id: uniqueId(),
+    title: "เลือกตั้งสหกรณ์ฯ",
+    icon: IconShieldCheck,
+    href: "/Elections",
   },
   {
     navlabel: true,
@@ -49,6 +58,12 @@ const MenuItems = [
         icon: StyledIcon,
         title: "Notifications",
         href: "/NotifyAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "รูปภาพ DOHCoop",
+        href: "/VideoAll",
       },
       {
         id: uniqueId(),
@@ -104,7 +119,7 @@ const MenuItems = [
         id: uniqueId(),
         icon: StyledIcon,
         title: "เอกสารประชุมใหญ่",
-        href: "/BusinessReport",
+        href: "/BusinessReportAll",
       },
     ],
   },
@@ -117,19 +132,111 @@ const MenuItems = [
         id: uniqueId(),
         icon: StyledIcon,
         title: "แบบฟอร์มสวัสดิการ",
-        href: "/",
+        href: "/WelfareFormAll",
       },
       {
         id: uniqueId(),
         icon: StyledIcon,
         title: "แบบฟอร์มสมัครสมาชิก",
-        href: "/",
+        href: "/MembershipFormAll",
       },
       {
         id: uniqueId(),
         icon: StyledIcon,
         title: "แบบฟอร์มเงินฝาก - ถอน",
-        href: "/",
+        href: "/DepositsWithdrawFormAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "แบบฟอร์มเกี่ยวกับเงินกู้",
+        href: "/LoanFormAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "แบบฟอร์มหนังสือร้องทุกข์ / ร้องเรียน",
+        href: "/ComplaintComplaintFormAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "หนังสือแต่งตั้งผู้รับโอนประโยชน์",
+        href: "/BeneficiaryFormAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "ใบคำขอเอาประกันภัยกลุ่มสหกรณ์",
+        href: "/GroupInsuranceFormAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "แบบฟอร์มอื่น ๆ",
+        href: "/OtherFormAll",
+      },
+    ],
+  },
+  {
+    id: uniqueId(),
+    title: "ข้อบังคับ ระเบียบ ประกาศ",
+    icon: IconFolderOpen,
+    children: [
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "ข้อบังคับ",
+        href: "/StatuteAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "ระเบียบ",
+        href: "/RegularityAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "ประกาศ",
+        href: "/DeclareAll",
+      },
+    ],
+  },
+  {
+    id: uniqueId(),
+    title: "แอปพลิเคชั่นสหกรณ์ฯ",
+    icon: IconApps,
+    children: [
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "การติดตั้ง",
+        href: "/InstallationAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "ดูข้อมูลส่วนบุคคล",
+        href: "/InformationAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "จัดการปัญชี",
+        href: "/ManageAccountsAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "การทำธุรกรรม",
+        href: "/TransactionsAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "การตั้งค่าผู้ใช้งาน",
+        href: "/UserSettingsAll",
       },
     ],
   },

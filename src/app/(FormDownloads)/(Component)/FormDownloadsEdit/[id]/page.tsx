@@ -1,43 +1,58 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Box, Button, Stack, TextField } from "@mui/material";
+import { Autocomplete, Box, Button, Stack, TextField } from "@mui/material";
 import DashboardCard from "@/app/components/shared/DashboardCard";
 import PublishedWithChangesIcon from "@mui/icons-material/PublishedWithChanges";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import FlipCameraAndroidIcon from "@mui/icons-material/FlipCameraAndroid";
+import { title } from "process";
 //Year, TitleMonth, PdfFile
 interface FormData {
-  year: string;
-  titleMonth: string;
+  title: string;
+  typeForm: string;
+  typeMember:string;
   pdf: File | null;
   pdfUrl: string;
 }
-
-const AssetsLiabilitiesEdit = () => {
+interface MemberOption {
+  data: string;
+}
+const FormDownloadsEdit = () => {
   const router = useRouter();
   const { id } = useParams();
+  const [titleMember, setTitleMember] = useState<MemberOption | null>(null);
   const [formData, setFormData] = useState<FormData>({
-    year: "",
-    titleMonth: "",
+    title: "",
+    typeForm: "",
+    typeMember: "",
     pdf: null,
     pdfUrl: "",
   });
+  const [typeForm, sertTypeForm] = useState("");
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+  const Member: MemberOption[] = [
+    { data: "สมาชิกสามัญประเภท ก" },
+    { data: "สมาชิกสามัญประเภท ข" },
+    { data: "สมาชิกสมทบ" },
+    { data: "สมาชิกประเภท ก ข สมทบ" },
+    { data: "สหกรณ์ฯ" },
+  ];
   const fetchImages = useCallback(async () => {
     try {
-      const response = await fetch(`${API}/AssetsLiabilities/GetById/${id}`);
+      const response = await fetch(`${API}/FormDowsloads/GetById/${id}`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
 
       const processedData = {
-        year: data[0].Year || "",
-        titleMonth: data[0].TitleMonth || "",
+        title: data[0].Title || "",
+        typeForm: data[0].TypeForm || "",
+        typeMember: data[0].TypeMember || "",
         pdfUrl: data[0].PdfFile
           ? `data:application/pdf;base64,${data[0].PdfFile}`
           : "",
@@ -74,7 +89,7 @@ const AssetsLiabilitiesEdit = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { year, pdf, titleMonth } = formData;
+    const { title, typeForm, typeMember, pdf } = formData;
     let base64Stringpdf = null;
 
     const handleFileRead = (file: File, fileType: string) => {
@@ -97,12 +112,14 @@ const AssetsLiabilitiesEdit = () => {
       }
 
       const payload: {
-        year: string;
-        titleMonth: string;
+        title: string;
+        typeForm: string;
+        typeMember: string;
         pdf?: string;
       } = {
-        year: year,
-        titleMonth: titleMonth,
+        title: title,
+        typeForm: typeForm,
+        typeMember: typeMember,
       };
 
 
@@ -110,7 +127,7 @@ const AssetsLiabilitiesEdit = () => {
         payload.pdf = base64Stringpdf;
       }
 
-      const response = await fetch(`${API}/AssetsLiabilities/Edit/${id}`, {
+      const response = await fetch(`${API}/FormDowsloads/Edit/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -126,7 +143,7 @@ const AssetsLiabilitiesEdit = () => {
           showConfirmButton: false,
           timer: 1500,
         }).then(() => {
-          router.push(`/NewAll`);
+          router.push(`/WelfareFormAll`);
         });
       } else {
         Swal.fire({
@@ -168,30 +185,54 @@ const AssetsLiabilitiesEdit = () => {
   }, [fetchImages]);
 
   return (
-    <DashboardCard title="Edit AssetsLiabilities">
+    <DashboardCard title={`Edit ${formData.typeForm}`}>
       <form className="forms-sample" onSubmit={handleSubmit}>
         <Box component="section" sx={{ p: 2 }}>
           <TextField
             fullWidth
             id="outlined-basic"
-            label="ประจำปี"
+            label="ชื่อฟอร์ม"
             variant="outlined"
             size="small"
             name="title"
             onChange={handleInputChange}
-            value={formData.year}
+            value={formData.title}
           />
         </Box>
         <Box component="section" sx={{ p: 2 }}>
           <TextField
             fullWidth
             id="outlined-basic"
-            label="ประจำเดือน"
-            variant="outlined"
+            label="ประเภทฟอร์ม Read Only"
             size="small"
-            name="details"
-            onChange={handleInputChange}
-            value={formData.titleMonth}
+            InputProps={{
+              readOnly: true,
+            }}
+            variant="outlined"
+            value={formData.typeForm}
+          />
+        </Box>
+        <Box sx={{ p: 2 }}>
+          <Autocomplete
+            fullWidth
+            options={Member}
+            size="small"
+            getOptionLabel={(option) => option.data}
+            isOptionEqualToValue={(option, value) => option.data === value.data}
+            onChange={(event, newValue) => {
+              setTitleMember(newValue);
+              setFormData((prevData) => ({
+                ...prevData,
+                typeMember: newValue ? newValue.data : "",
+              }));
+            }}
+            value={
+              Member.find((option) => option.data === formData.typeMember) ||
+              null
+            }
+            renderInput={(params) => (
+              <TextField {...params} label="ประเภทสมาชิก" />
+            )}
           />
         </Box>
         <Box component="section" sx={{ p: 2 }}>
@@ -255,7 +296,7 @@ const AssetsLiabilitiesEdit = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => router.push(`/AssetsLiabilitiesAll`)}
+              onClick={() => router.back()}
             >
               Cancel
             </Button>
@@ -266,4 +307,4 @@ const AssetsLiabilitiesEdit = () => {
   );
 };
 
-export default AssetsLiabilitiesEdit;
+export default FormDownloadsEdit;

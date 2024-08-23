@@ -1,5 +1,5 @@
 "use client";
-import { Paper, Typography } from "@mui/material";
+import { Paper } from "@mui/material";
 import PageContainer from "@/app/(Dashboard)/components/container/PageContainer";
 import DashboardCard from "@/app/(Dashboard)/components/shared/DashboardCard";
 import {
@@ -19,6 +19,7 @@ import { css } from "@emotion/css";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
+import Meta from "antd/es/card/Meta";
 
 const avatarImages = [
   "/images/Icon/bottts-1.png",
@@ -27,7 +28,6 @@ const avatarImages = [
   "/images/Icon/bottts-4.png",
   "/images/Icon/bottts-5.png",
 ];
-const { Meta } = Card;
 
 const useStyle = createStyles(({ token }) => ({
   "my-modal-body": {
@@ -49,11 +49,12 @@ const useStyle = createStyles(({ token }) => ({
 }));
 
 type SizeType = "large" | "middle" | "small";
-interface Video {
+
+interface Business {
   id: number;
   title: string;
-  youTubeUrl: string;
-  details: string;
+  image: string;
+  fileUrl: string;  // URL to the PDF file
 }
 
 const getRandomAvatar = () => {
@@ -61,11 +62,11 @@ const getRandomAvatar = () => {
   return avatarImages[randomIndex];
 };
 
-const VideoPage = () => {
+const BusinessReportPage = () => {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+  const [business, setBusiness] = useState<Business[]>([]);
+  const [selectedPDFUrl, setSelectedPDFUrl] = useState<string | null>(null);
   const { styles } = useStyle();
   const token = useTheme();
   const { getPrefixCls } = useContext(ConfigProvider.ConfigContext);
@@ -73,37 +74,30 @@ const VideoPage = () => {
   const [size, setSize] = useState<SizeType>("middle");
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  const getYouTubeVideoId = (url: string) => {
-    const regex =
-      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|watch)\?.*v=|embed\/)|youtu\.be\/)([^\s&]+)/;
-    const match = url.match(regex);
-    return match && match[1] ? match[1] : null;
-  };
-
-  const fetchVideos = useCallback(async () => {
+  const fetchReports = useCallback(async () => {
     try {
-      const response = await fetch(`${API}/Videos/GetAll`);
+      const response = await fetch(`${API}/BusinessReport/GetAll`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-      const data = await response.json();
+      const { data } = await response.json();
 
-      const processedData = data.map((video: any) => ({
-        id: video.Id,
-        title: video.Title,
-        youTubeUrl: video.YouTubeUrl,
-        details: video.Details,
+      const processedData = data.map((report: any) => ({
+        id: report.Id,
+        title: report.Title,
+        image: `data:image/webp;base64,${report.Image}`,  // Assuming the image is still base64
+        fileUrl: `${API}/BusinessReport/GetAll/File/${report.Id}`,  // URL to fetch the PDF
       }));
 
-      setVideos(processedData);
+      setBusiness(processedData);
     } catch (error) {
-      console.error("Failed to fetch Videos:", error);
+      console.error("Failed to fetch reports:", error);
     }
   }, [API]);
 
   useEffect(() => {
-    fetchVideos();
-  }, [fetchVideos]);
+    fetchReports();
+  }, [fetchReports]);
 
   const classNames = {
     body: styles["my-modal-body"],
@@ -149,39 +143,39 @@ const VideoPage = () => {
           135deg,
           #1a2980,
           #26d0ce
-        ); /* Change to your desired hover gradient */
+        );
       }
     }
   `;
 
-  const showModal = (video: Video) => {
-    setSelectedVideo(video);
+  const showModal = (fileUrl: string) => {
+    setSelectedPDFUrl(fileUrl);
     setIsModalOpen(true);
   };
 
   const handleModalClose = () => {
     setIsModalOpen(false);
-    setSelectedVideo(null);
+    setSelectedPDFUrl(null);
   };
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await axios.delete(`${API}/Videos/Delete`, {
+      const response = await axios.delete(`${API}/BusinessReport/Delete`, {
         data: { id },
       });
       if (response.status === 200) {
-        Swal.fire("Deleted!", "The slide has been deleted.", "success");
-        setVideos((prevVideos) =>
-          prevVideos.filter((Video) => Video.id !== id)
+        Swal.fire("Deleted!", "The report has been deleted.", "success");
+        setBusiness((prevBusiness) =>
+          prevBusiness.filter((report) => report.id !== id)
         );
       } else {
-        Swal.fire("Error!", "Failed to delete the slide.", "error");
+        Swal.fire("Error!", "Failed to delete the report.", "error");
       }
     } catch (error) {
-      console.error("Failed to delete slide:", error);
+      console.error("Failed to delete report:", error);
       Swal.fire(
         "Error!",
-        "An error occurred while deleting the slide.",
+        "An error occurred while deleting the report.",
         "error"
       );
     }
@@ -189,12 +183,12 @@ const VideoPage = () => {
 
   return (
     <PageContainer>
-      <DashboardCard title="จัดการ Videos">
+      <DashboardCard title="Manage BusinessReport">
         <Container>
           <Paper>
             <Box display="flex" justifyContent="space-between" mb={2}>
               <Box></Box>
-              <Link href="/VideoCreate">
+              <Link href="/BusinessReportCreate">
                 <Button
                   type="primary"
                   shape="round"
@@ -202,7 +196,7 @@ const VideoPage = () => {
                   size={size}
                   style={{ background: "#4BD08B" }}
                 >
-                  Add Video
+                  Add BusinessReport
                 </Button>
               </Link>
             </Box>
@@ -218,21 +212,19 @@ const VideoPage = () => {
                 flexDirection: { xs: "column", sm: "row" },
               }}
             >
-              {videos.map((video) => (
+              {business.map((report) => (
                 <Card
-                  key={video.id}
+                  key={report.id}
                   style={{ width: 300 }}
                   cover={
                     <div style={{ position: "relative", cursor: "pointer" }}>
                       <img
                         width="100%"
-                        height="200"
-                        src={`https://img.youtube.com/vi/${getYouTubeVideoId(
-                          video.youTubeUrl
-                        )}/hqdefault.jpg`}
-                        alt="Video Thumbnail"
+                        height="400"
+                        src={report.image}
+                        alt="Report Thumbnail"
                         style={{ objectFit: "cover" }}
-                        onClick={() => showModal(video)}
+                        onClick={() => showModal(report.fileUrl)}
                       />
                       <div
                         style={{
@@ -249,20 +241,22 @@ const VideoPage = () => {
                   }
                   actions={[
                     <VideoCameraOutlined
-                      key="youtube"
-                      onClick={() => showModal(video)}
+                      key="view"
+                      onClick={() => showModal(report.fileUrl)}
                     />,
-                    <EditOutlined key="edit" onClick={() => router.push(`/VideoEdit/${video.id}`)}/>,
+                    <EditOutlined
+                      key="edit"
+                      onClick={() => router.push(`/BusinessReportEdit/${report.id}`)}
+                    />,
                     <DeleteOutlined
                       key="delete"
-                      onClick={() => handleDelete(video.id)}
+                      onClick={() => handleDelete(report.id)}
                     />,
                   ]}
                 >
                   <Meta
                     avatar={<Avatar src={getRandomAvatar()} />}
-                    title={video.title}
-                    description={video.details}
+                    title={report.title}
                     style={{ fontFamily: "Mitr" }}
                   />
                 </Card>
@@ -274,10 +268,10 @@ const VideoPage = () => {
               open={isModalOpen}
               onOk={handleModalClose}
               onCancel={handleModalClose}
-              classNames={classNames}
-              styles={modalStyles}
+              className={classNames.content}
+              style={modalStyles.content}
               width={700}
-              footer={(_) => (
+              footer={
                 <center>
                   <ConfigProvider
                     button={{
@@ -290,31 +284,21 @@ const VideoPage = () => {
                       icon={<CloseCircleOutlined />}
                       onClick={handleModalClose}
                     >
-                      ปิด
+                      Close
                     </Button>
                   </ConfigProvider>
                 </center>
-              )}
+              }
             >
-              {selectedVideo && (
+              {selectedPDFUrl && (
                 <iframe
+                  src={selectedPDFUrl}
                   width="100%"
-                  height="370"
-                  src={`https://www.youtube.com/embed/${getYouTubeVideoId(
-                    selectedVideo.youTubeUrl
-                  )}`}
-                  title="YouTube Video"
-                  frameBorder="0"
-                  allowFullScreen
-                ></iframe>
+                  height="600px"
+                  title="PDF Preview"
+                />
               )}
             </Modal>
-            <ConfigProvider
-              modal={{
-                classNames,
-                styles: modalStyles,
-              }}
-            ></ConfigProvider>
           </Paper>
         </Container>
       </DashboardCard>
@@ -322,4 +306,4 @@ const VideoPage = () => {
   );
 };
 
-export default VideoPage;
+export default BusinessReportPage;

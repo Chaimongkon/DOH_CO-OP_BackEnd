@@ -24,11 +24,7 @@ export async function GET(req: NextRequest) {
     const search = req.nextUrl.searchParams.get('search');
     const start_idx = (page - 1) * per_page;
 
-    // Log parameters for debugging
-    console.log("Page:", page);
-    console.log("Per Page:", per_page);
-    console.log("Search:", search);
-    console.log("Start Index:", start_idx);
+
 
     const params: (string | number)[] = [];
 
@@ -45,10 +41,6 @@ export async function GET(req: NextRequest) {
 
     // Add ordering and pagination with string interpolation for LIMIT
     query += ` ORDER BY Id DESC LIMIT ${start_idx}, ${per_page}`;
-
-    // Log query for debugging
-    console.log("Executing query:", query);
-    console.log("With parameters:", params);
 
     // Execute the query
     const [rows]: [NewsRow[], FieldPacket[]] = await db.execute(query, params);

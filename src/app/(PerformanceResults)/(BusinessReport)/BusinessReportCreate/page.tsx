@@ -9,7 +9,7 @@ import FlipCameraAndroidIcon from "@mui/icons-material/FlipCameraAndroid";
 import { useRouter } from "next/navigation";
 
 const IMAGE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB
-const PDF_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
+const PDF_SIZE_LIMIT = 100 * 1024 * 1024; // 20MB
 const MAX_IMAGE_DIMENSIONS = { width: 322, height: 428 };
 
 const BusinessReportCreate = () => {

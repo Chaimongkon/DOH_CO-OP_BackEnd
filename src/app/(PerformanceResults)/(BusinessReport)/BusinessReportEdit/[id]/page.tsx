@@ -8,20 +8,22 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import { useParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import FlipCameraAndroidIcon from "@mui/icons-material/FlipCameraAndroid";
-//Year, TitleMonth, PdfFile
+
 interface FormData {
-  year: string;
-  titleMonth: string;
+  title: string;
+  image: File | null;
+  imageUrl: string;
   pdf: File | null;
   pdfUrl: string;
 }
 
-const AssetsLiabilitiesEdit = () => {
+const BusinessReportEdit = () => {
   const router = useRouter();
   const { id } = useParams();
   const [formData, setFormData] = useState<FormData>({
-    year: "",
-    titleMonth: "",
+    title: "",
+    image: null,
+    imageUrl: "",
     pdf: null,
     pdfUrl: "",
   });
@@ -29,20 +31,19 @@ const AssetsLiabilitiesEdit = () => {
 
   const fetchImages = useCallback(async () => {
     try {
-      const response = await fetch(`${API}/AssetsLiabilities/GetById/${id}`);
+      const response = await fetch(`${API}/BusinessReport/GetById/${id}`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
 
       const processedData = {
-        year: data[0].Year || "",
-        titleMonth: data[0].TitleMonth || "",
-        pdfUrl: data[0].PdfFile
-          ? `data:application/pdf;base64,${data[0].PdfFile}`
-          : "",
+        title: data.Title || "",
+        details: data.Details || "",
+        imageUrl: data.Image ? `${data.Image}` : "",
+        pdfUrl: data.File ? `${data.File}` : "", 
       };
-
+      console.log(processedData)
       setFormData({
         ...formData,
         ...processedData,
@@ -59,6 +60,31 @@ const AssetsLiabilitiesEdit = () => {
     });
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const imageFile = e.target.files?.[0];
+    if (imageFile) {
+      const imageUrl = URL.createObjectURL(imageFile);
+
+      const img = new Image();
+      img.src = imageUrl;
+
+      img.onload = () => {
+        if (img.width > 512 || img.height > 512) {
+          Swal.fire({
+            icon: "error",
+            title: "ขนาดภาพใหญ่เกิ๊น",
+            html: `กรุณาเลือกรูปภาพที่มีขนาด <font style="color:red"><b>512px X 512px</b></font> <br />หรือ รูปที่เล็กกว่า`,
+          });
+        } else {
+          setFormData({
+            ...formData,
+            image: imageFile,
+            imageUrl: imageUrl,
+          });
+        }
+      };
+    }
+  };
 
   const handlePDFChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const PDFFile = e.target.files?.[0];
@@ -74,7 +100,8 @@ const AssetsLiabilitiesEdit = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { year, pdf, titleMonth } = formData;
+    const { image, pdf, title } = formData;
+    let base64Stringimg = null;
     let base64Stringpdf = null;
 
     const handleFileRead = (file: File, fileType: string) => {
@@ -92,25 +119,29 @@ const AssetsLiabilitiesEdit = () => {
     };
 
     try {
+      if (image) {
+        base64Stringimg = await handleFileRead(image, "image/png"); // assuming image type is PNG, change if necessary
+      }
       if (pdf) {
         base64Stringpdf = await handleFileRead(pdf, "application/pdf");
       }
 
       const payload: {
-        year: string;
-        titleMonth: string;
+        title: string;
+        image?: string;
         pdf?: string;
       } = {
-        year: year,
-        titleMonth: titleMonth,
+        title: title,
       };
 
-
+      if (base64Stringimg) {
+        payload.image = base64Stringimg;
+      }
       if (base64Stringpdf) {
         payload.pdf = base64Stringpdf;
       }
 
-      const response = await fetch(`${API}/AssetsLiabilities/Edit/${id}`, {
+      const response = await fetch(`${API}/BusinessReport/Edit/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -168,31 +199,63 @@ const AssetsLiabilitiesEdit = () => {
   }, [fetchImages]);
 
   return (
-    <DashboardCard title="Edit AssetsLiabilities">
+    <DashboardCard title="Edit Slides">
       <form className="forms-sample" onSubmit={handleSubmit}>
         <Box component="section" sx={{ p: 2 }}>
           <TextField
             fullWidth
             id="outlined-basic"
-            label="ประจำปี"
+            label="หัวข้อข่าวประชาสัมพันธ์"
             variant="outlined"
             size="small"
             name="title"
             onChange={handleInputChange}
-            value={formData.year}
+            value={formData.title}
           />
         </Box>
         <Box component="section" sx={{ p: 2 }}>
-          <TextField
-            fullWidth
-            id="outlined-basic"
-            label="ประจำเดือน"
-            variant="outlined"
-            size="small"
-            name="details"
-            onChange={handleInputChange}
-            value={formData.titleMonth}
-          />
+          <div
+            className="form-group"
+            style={{
+              borderStyle: "dashed",
+              borderWidth: 2,
+              borderRadius: 1,
+              borderColor: "grey",
+            }}
+          >
+            <label>
+              รูปภาพ{" "}
+              <span style={{ color: "red" }}>ขนาดภาพสวยๆ 206px X 198px</span>
+            </label>
+            <br />
+            <br />
+            <div className="form-group">
+              <center>
+                {formData.imageUrl && (
+                  <img height="256px" src={formData.imageUrl} alt="Preview" />
+                )}
+                <br />
+                <br />
+                <input
+                  type="file"
+                  id="imageUpload"
+                  name="image"
+                  accept="image/png, image/jpeg"
+                  style={{ display: "none" }}
+                  onChange={handleImageChange}
+                />
+                <Button
+                  variant="contained"
+                  color="warning"
+                  endIcon={<FlipCameraAndroidIcon />}
+                  onClick={triggerFileInputClick}
+                >
+                  Change Image
+                </Button>
+                <br />
+              </center>
+            </div>
+          </div>
         </Box>
         <Box component="section" sx={{ p: 2 }}>
           <div
@@ -255,7 +318,7 @@ const AssetsLiabilitiesEdit = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => router.push(`/AssetsLiabilitiesAll`)}
+              onClick={() => router.push(`/NewAll`)}
             >
               Cancel
             </Button>
@@ -266,4 +329,4 @@ const AssetsLiabilitiesEdit = () => {
   );
 };
 
-export default AssetsLiabilitiesEdit;
+export default BusinessReportEdit;
