@@ -73,7 +73,7 @@ const AssetsLiabilitiesAll = () => {
 
   const getPaginatedData = useCallback(async () => {
     try {
-      const res = await fetch(`${API}AssetsLiabilities/GetAll`);
+      const res = await fetch(`${API}/AssetsLiabilities/GetAll`);
       const data = await res.json();
       setRows(data.data);
       if (data.data.length > 0) {
@@ -202,7 +202,9 @@ const AssetsLiabilitiesAll = () => {
                                       color="warning"
                                       startIcon={<EditIcon />}
                                       onClick={() =>
-                                        router.push(`/AssetsLiabilitiesEdit/${row.Id}`)
+                                        router.push(
+                                          `/AssetsLiabilitiesEdit/${row.Id}`
+                                        )
                                       }
                                     >
                                       Edit

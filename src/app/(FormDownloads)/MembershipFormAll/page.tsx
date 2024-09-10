@@ -76,7 +76,7 @@ const MembershipFormAll = () => {
 
   const getPaginatedData = useCallback(async () => {
     try {
-      const res = await fetch(`${API}FormDowsloads/GetAll`);
+      const res = await fetch(`${API}/FormDowsloads/GetAll`);
       const data = await res.json();
       setRows(data.data.filter((row: Data) => row.TypeForm === "แบบฟอร์มสมัครสมาชิก"));
       if (data.data.length > 0) {

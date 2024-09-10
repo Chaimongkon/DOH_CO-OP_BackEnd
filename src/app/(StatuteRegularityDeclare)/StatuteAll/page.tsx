@@ -39,7 +39,7 @@ interface Column {
 const columns: Column[] = [
   { id: "Image", label: "Image", minWidth: 170, align: "center" },
   { id: "Title", label: "ชื่อแบบฟอร์ม", minWidth: 170, align: "left" },
-  { id: "TypeForm", label: "ประเภทสวัสดิการ", minWidth: 100, align: "left" },
+  { id: "TypeForm", label: "ประเภท", minWidth: 100, align: "left" },
   { id: "TypeMember", label: "ประเภทสมาชิก", minWidth: 100, align: "left" },
   { id: "PdfFile", label: "PDF File", minWidth: 170, align: "center" },
   { id: "Actions", label: "Actions", minWidth: 170, align: "center" },
@@ -64,7 +64,7 @@ const base64ToBlobUrl = (base64: string, type: string) => {
   return URL.createObjectURL(blob);
 };
 
-const WelfareFormAll = () => {
+const StatuteAll = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [rows, setRows] = useState<Data[]>([]);
@@ -75,12 +75,16 @@ const WelfareFormAll = () => {
   const typeForm = "ข้อบังคับ";
   const getPaginatedData = useCallback(async () => {
     try {
-      const res = await fetch(`${API}StatuteRegularityDeclare/GetAll`);
+      const res = await fetch(`${API}/SRD/GetAll`);
       const data = await res.json();
-      setRows(data.data.filter((row: Data) => row.TypeForm === "ข้อบังคับ"));
+      const filteredRows = data.data.filter(
+        (row: Data) => row.TypeForm === "ข้อบังคับ"
+      );
+      setRows(filteredRows);
 
-      if (data.data.length > 0) {
-        setValue(data.data[0].TypeMember);
+      // Always set the first tab to be selected by default
+      if (filteredRows.length > 0) {
+        setValue(filteredRows[0].TypeMember);
       }
     } catch (error) {
       console.error("Failed to fetch data:", error);
@@ -104,7 +108,7 @@ const WelfareFormAll = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await axios.delete(`${API}/StatuteRegularityDeclare/Delete`, {
+      const response = await axios.delete(`${API}/SRD/Delete`, {
         data: { id },
       });
 
@@ -141,7 +145,11 @@ const WelfareFormAll = () => {
         <Paper>
           <Box display="flex" justifyContent="space-between" mb={2}>
             <Box></Box>
-            <Link href={`/FormDownloadsCreate?typeForm=${encodeURIComponent(typeForm)}`}>
+            <Link
+              href={`/StatuteRegularityDeclareCreate?typeForm=${encodeURIComponent(
+                typeForm
+              )}`}
+            >
               <Button
                 variant="contained"
                 size="small"
@@ -205,7 +213,9 @@ const WelfareFormAll = () => {
                                       color="warning"
                                       startIcon={<EditIcon />}
                                       onClick={() =>
-                                        router.push(`/FormDownloadsEdit/${row.Id}`)
+                                        router.push(
+                                          `/StatuteRegularityDeclareEdit/${row.Id}`
+                                        )
                                       }
                                     >
                                       Edit
@@ -286,4 +296,4 @@ const WelfareFormAll = () => {
   );
 };
 
-export default WelfareFormAll;
+export default StatuteAll;

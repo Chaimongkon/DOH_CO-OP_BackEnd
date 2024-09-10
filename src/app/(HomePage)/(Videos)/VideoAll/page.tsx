@@ -72,7 +72,8 @@ const VideoPage = () => {
   const rootPrefixCls = getPrefixCls();
   const [size, setSize] = useState<SizeType>("middle");
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
-
+  const [search, setSearch] = useState(""); // State for search query
+  
   const getYouTubeVideoId = (url: string) => {
     const regex =
       /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|watch)\?.*v=|embed\/)|youtu\.be\/)([^\s&]+)/;
@@ -82,24 +83,36 @@ const VideoPage = () => {
 
   const fetchVideos = useCallback(async () => {
     try {
-      const response = await fetch(`${API}/Videos/GetAll`);
+      let url = `${API}/Videos/GetAll`;
+      if (search) {
+        url += `?search=${encodeURIComponent(search)}`;
+      }
+  
+      const response = await fetch(url, {
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+  
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
+  
       const data = await response.json();
-
+  
       const processedData = data.map((video: any) => ({
         id: video.Id,
         title: video.Title,
         youTubeUrl: video.YouTubeUrl,
         details: video.Details,
       }));
-
+  
       setVideos(processedData);
     } catch (error) {
       console.error("Failed to fetch Videos:", error);
     }
-  }, [API]);
+  }, [API, search]);
+  
 
   useEffect(() => {
     fetchVideos();

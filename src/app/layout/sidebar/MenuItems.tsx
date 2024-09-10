@@ -8,7 +8,8 @@ import {
   IconHomeCog,
   IconShieldCheck,
   IconFolderOpen,
-  IconApps
+  IconApps,
+  IconHours24
 } from "@tabler/icons-react";
 import { uniqueId } from "lodash";
 const StyledIcon = styled(IconPercentage100)`
@@ -30,7 +31,7 @@ const MenuItems = [
     id: uniqueId(),
     title: "เลือกตั้งสหกรณ์ฯ",
     icon: IconShieldCheck,
-    href: "/Elections",
+    href: "/ElectionAll",
   },
   {
     navlabel: true,
@@ -63,7 +64,7 @@ const MenuItems = [
         id: uniqueId(),
         icon: StyledIcon,
         title: "รูปภาพ DOHCoop",
-        href: "/VideoAll",
+        href: "/PhotoAll",
       },
       {
         id: uniqueId(),
@@ -106,20 +107,38 @@ const MenuItems = [
   },
   {
     id: uniqueId(),
-    title: "ผลการดำเนินงาน",
-    icon: IconChartDonut,
+    title: "บริการ",
+    icon: IconHours24,
     children: [
       {
         id: uniqueId(),
         icon: StyledIcon,
-        title: "รายการสิ้นทรัพย์ย่อ",
-        href: "/AssetsLiabilitiesAll",
+        title: "สมัครสมาชิก",
+        href: "/MemberAll",
       },
       {
         id: uniqueId(),
         icon: StyledIcon,
-        title: "เอกสารประชุมใหญ่",
-        href: "/BusinessReportAll",
+        title: "สวัสดิการสมาชิก",
+        href: "/WelfareAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "บริการทำประกัน",
+        href: "/InsuranceAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "บริการเงินฝาก",
+        href: "/DepositAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "บริการเงินกู้",
+        href: "/LoanAll",
       },
     ],
   },
@@ -175,6 +194,25 @@ const MenuItems = [
         icon: StyledIcon,
         title: "แบบฟอร์มอื่น ๆ",
         href: "/OtherFormAll",
+      },
+    ],
+  },
+  {
+    id: uniqueId(),
+    title: "ผลการดำเนินงาน",
+    icon: IconChartDonut,
+    children: [
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "รายการสิ้นทรัพย์ย่อ",
+        href: "/AssetsLiabilitiesAll",
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "เอกสารประชุมใหญ่",
+        href: "/BusinessReportAll",
       },
     ],
   },

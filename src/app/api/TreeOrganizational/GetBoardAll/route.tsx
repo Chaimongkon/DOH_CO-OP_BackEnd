@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import pool from "../../../db/mysql";
 import { RowDataPacket, FieldPacket } from "mysql2";
 
-// Define the types for the query results
+export const dynamic = 'force-dynamic';
 interface SlideRow extends RowDataPacket {
   Id: number;
   Name: string;

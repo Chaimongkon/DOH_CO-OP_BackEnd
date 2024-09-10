@@ -145,7 +145,7 @@ const NotifyAll = () => {
 
   const hastatus = useCallback(async () => {
     try {
-      const response = await fetch(`${API}Notifications/UpdateStatus/${id}`, {
+      const response = await fetch(`${API}/Notifications/UpdateStatus/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

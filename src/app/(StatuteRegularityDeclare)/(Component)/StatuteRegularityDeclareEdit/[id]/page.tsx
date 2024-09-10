@@ -42,7 +42,7 @@ const StatuteRegularityDeclareEdit = () => {
   ];
   const fetchImages = useCallback(async () => {
     try {
-      const response = await fetch(`${API}/FormDowsloads/GetById/${id}`);
+      const response = await fetch(`${API}/SRD/GetById/${id}`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -126,7 +126,7 @@ const StatuteRegularityDeclareEdit = () => {
         payload.pdf = base64Stringpdf;
       }
 
-      const response = await fetch(`${API}/FormDowsloads/Edit/${id}`, {
+      const response = await fetch(`${API}/SRD/Edit/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -142,7 +142,7 @@ const StatuteRegularityDeclareEdit = () => {
           showConfirmButton: false,
           timer: 1500,
         }).then(() => {
-          router.push(`/WelfareFormAll`);
+          router.back()
         });
       } else {
         Swal.fire({

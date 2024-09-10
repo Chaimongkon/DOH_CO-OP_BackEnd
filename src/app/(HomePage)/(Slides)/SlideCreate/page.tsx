@@ -69,7 +69,7 @@ const SlideCreate = () => {
 
           if (base64String) {
             const imageType = image.type;
-            const response = await fetch(`${API}Slides/Create`, {
+            const response = await fetch(`${API}/Slides/Create`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

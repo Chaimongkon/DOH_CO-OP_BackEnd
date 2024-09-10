@@ -66,7 +66,7 @@ const StatuteRegularityDeclareCreate = () => {
         const base64Stringpdf = readerpdf.result?.toString().split(",")[1];
 
         if (base64Stringpdf) {
-          const response = await fetch(`${API}FormDowsloads/Create`, {
+          const response = await fetch(`${API}/SRD/Create`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

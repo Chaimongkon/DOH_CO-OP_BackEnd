@@ -66,7 +66,7 @@ const NotifyCreate = () => {
 
         if (base64String) {
           const imageType = image.type;
-          const response = await fetch(`${API}Notifications/Create`, {
+          const response = await fetch(`${API}/Notifications/Create`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

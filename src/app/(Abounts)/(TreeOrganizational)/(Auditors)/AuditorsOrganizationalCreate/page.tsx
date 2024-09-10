@@ -65,7 +65,7 @@ const OrganizationalCreate = () => {
 
         if (base64String) {
           const imageType = image.type;
-          const response = await fetch(`${API}TreeOrganizational/Create`, {
+          const response = await fetch(`${API}/TreeOrganizational/Create`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

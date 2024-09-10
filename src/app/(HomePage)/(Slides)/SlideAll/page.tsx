@@ -45,7 +45,7 @@ const SlideAll = () => {
 
   const fetchImages = useCallback(async () => {
     try {
-      const response = await fetch(`${API}/Slides/GetAll`);
+      const response = await fetch(`${API}/Slides/GetAll?_=${new Date().getTime()}`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }

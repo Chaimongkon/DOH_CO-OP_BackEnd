@@ -24,8 +24,6 @@ export async function GET(req: NextRequest) {
     const search = req.nextUrl.searchParams.get('search');
     const start_idx = (page - 1) * per_page;
 
-
-
     const params: (string | number)[] = [];
 
     let query = `
@@ -76,3 +74,6 @@ export async function GET(req: NextRequest) {
     if (db) db.release();
   }
 }
+
+// Make sure this API route is not statically rendered
+export const dynamic = 'force-dynamic';

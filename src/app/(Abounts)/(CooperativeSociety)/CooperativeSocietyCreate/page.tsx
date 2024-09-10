@@ -44,7 +44,7 @@ const CooperativeSocietyCreate = () => {
           Swal.fire({
             icon: "error",
             title: "ขนาดภาพใหญ่เกิ๊น",
-            html: `กรุณาเลือกรูปภาพที่มีขนาด <font style="color:red"><b>300px X 300px</b></font> <br />หรือ รูปที่เล็กกว่า`,
+            html: `กรุณาเลือกรูปภาพที่มีขนาด <font style="color:red"><b>1500px X 1500px</b></font> <br />หรือ รูปที่เล็กกว่า`,
           });
           setImage(null);
           setIsSelectedimg(false);
@@ -76,7 +76,7 @@ const CooperativeSocietyCreate = () => {
 
         if (base64String) {
           const imageType = image.type;
-          const response = await fetch(`${API}CooperativeSociety/Create`, {
+          const response = await fetch(`${API}/CooperativeSociety/Create`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -140,7 +140,7 @@ const CooperativeSocietyCreate = () => {
           >
             <label>
               รูปภาพ{" "}
-              <span style={{ color: "red" }}>ขนาดภาพสวยๆ 300px X 300px</span>
+              <span style={{ color: "red" }}>ขนาดภาพสวยๆ 1500px X 1500px</span>
             </label>
             <br />
             <br />

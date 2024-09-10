@@ -35,6 +35,7 @@ const base64ToBlobUrl = (base64: string) => {
 
 const BoardOrganizational = () => {
   const router = useRouter();
+  const timestamp = new Date().getTime();
   const [board, setBoard] = useState<Board[]>([]);
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
   const isMobile = useMediaQuery("(max-width:768px)");
@@ -67,10 +68,12 @@ const BoardOrganizational = () => {
         data: { id },
       });
       if (response.status === 200) {
-        Swal.fire("Deleted!", "The Organizational has been deleted.", "success");
-        setBoard((prevBoard) =>
-          prevBoard.filter((board) => board.id !== id)
+        Swal.fire(
+          "Deleted!",
+          "The Organizational has been deleted.",
+          "success"
         );
+        setBoard((prevBoard) => prevBoard.filter((board) => board.id !== id));
       } else {
         Swal.fire("Error!", "Failed to delete the Organizational.", "error");
       }
@@ -112,11 +115,21 @@ const BoardOrganizational = () => {
             }}
             cover={<img alt="example" src={b.image} />}
             actions={[
-              <EditOutlined key="edit" onClick={() => router.push(`/BoardOrganizationalEdit/${b.id}`)} />,
-              <DeleteOutlined key="delete" onClick={() => handleDelete(b.id)} />,
+              <EditOutlined
+                key="edit"
+                onClick={() => router.push(`/BoardOrganizationalEdit/${b.id}`)}
+              />,
+              <DeleteOutlined
+                key="delete"
+                onClick={() => handleDelete(b.id)}
+              />,
             ]}
           >
-            <Meta style={{fontFamily: 'Mitr'}} title={b.name} description={b.position} />
+            <Meta
+              style={{ fontFamily: "Mitr" }}
+              title={b.name}
+              description={b.position}
+            />
           </Card>
         ))}
       </Box>

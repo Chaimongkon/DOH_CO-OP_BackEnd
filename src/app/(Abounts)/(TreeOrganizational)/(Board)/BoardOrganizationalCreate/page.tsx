@@ -21,7 +21,9 @@ const OrganizationalCreate = () => {
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
-  const [titleType, setTitleType] = useState<TypeOption | null>(null);
+  const [titleType, setTitleType] = useState<TypeOption | null>({
+    data: "คณะกรรมการดำเนินการ", 
+  });
   const [titlePriority, setTitlePriority] = useState<PriorityOption | null>(
     null
   );
@@ -29,6 +31,7 @@ const OrganizationalCreate = () => {
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const hiddenFileInput = useRef<HTMLInputElement | null>(null);
+  
   const Type: TypeOption[] = [
     { data: "คณะกรรมการดำเนินการ" },
     { data: "ผู้ตรวจสอบบัญชีและผู้ตรวจสอบกิจการ" },
@@ -94,7 +97,7 @@ const OrganizationalCreate = () => {
 
         if (base64String) {
           const imageType = image.type;
-          const response = await fetch(`${API}TreeOrganizational/Create`, {
+          const response = await fetch(`${API}/TreeOrganizational/Create`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -227,6 +230,7 @@ const OrganizationalCreate = () => {
             size="small"
             onChange={(e) => setName(e.target.value)}
             value={name}
+            required
           />
         </Box>
         <Box component="section" sx={{ p: 2 }}>
@@ -238,6 +242,7 @@ const OrganizationalCreate = () => {
             size="small"
             onChange={(e) => setPosition(e.target.value)}
             value={position}
+            required
           />
         </Box>
         <Box component="section" sx={{ p: 2 }}>
@@ -250,7 +255,7 @@ const OrganizationalCreate = () => {
               readOnly: true,
             }}
             variant="outlined"
-            value={"คณะกรรมการดำเนินการ"}
+            value={titleType?.data || ""}
           />
         </Box>
         <Box component="section" sx={{ p: 2 }}>

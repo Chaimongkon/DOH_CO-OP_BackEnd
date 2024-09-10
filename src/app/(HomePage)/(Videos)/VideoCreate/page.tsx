@@ -50,7 +50,7 @@ const VideoCreate = () => {
     }
 
     try {
-      const response = await fetch(`${API}Videos/Create`, {
+      const response = await fetch(`${API}/Videos/Create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

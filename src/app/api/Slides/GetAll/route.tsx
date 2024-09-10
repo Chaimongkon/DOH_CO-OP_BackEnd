@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import pool from "../../../db/mysql";
 import { RowDataPacket, FieldPacket } from "mysql2";
 
-// Define the types for the query results
+export const dynamic = 'force-dynamic';
 interface SlideRow extends RowDataPacket {
   Id: number;
   No: number;
@@ -20,10 +20,15 @@ export async function GET() {
     // Process the rows to convert the Image field to base64 string
     const processedRows = rows.map((row) => ({
       ...row,
-      Image: row.Image ? Buffer.from(row.Image).toString('base64') : null,
+      Image: row.Image ? Buffer.from(row.Image).toString("base64") : null,
     }));
 
-    return NextResponse.json(processedRows, { status: 200 });
+    return NextResponse.json(processedRows, {
+      status: 200,
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+      },
+    });
   } catch (error) {
     console.error("Error fetching data:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

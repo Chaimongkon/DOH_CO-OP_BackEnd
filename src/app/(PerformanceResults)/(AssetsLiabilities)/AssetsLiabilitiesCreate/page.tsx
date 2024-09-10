@@ -70,7 +70,7 @@ const AssetsLiabilitiesCreate = () => {
         const base64Stringpdf = readerpdf.result?.toString().split(",")[1];
 
         if (base64Stringpdf) {
-          const response = await fetch(`${API}AssetsLiabilities/Create`, {
+          const response = await fetch(`${API}/AssetsLiabilities/Create`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

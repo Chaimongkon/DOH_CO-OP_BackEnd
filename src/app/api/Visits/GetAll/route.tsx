@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import pool from "../../../db/mysql";
 import { RowDataPacket, FieldPacket } from "mysql2";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   let db;
   try {

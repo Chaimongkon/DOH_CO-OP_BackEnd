@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import pool from "../../../db/mysql";
 import { RowDataPacket, FieldPacket } from "mysql2";
 
+export const dynamic = 'force-dynamic';
 // Define the types for the query results
 interface SocietyRow extends RowDataPacket {
   Id: number;

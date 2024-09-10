@@ -95,7 +95,7 @@ export default function NewAll() {
   };
 
   const getPaginatedData = useCallback(() => {
-    let url = `${API}News/GetAll?page=${
+    let url = `${API}/News/GetAll?page=${
       currentPage.current + 1
     }&per_page=${rowsPerPage}`;
     if (search) {
