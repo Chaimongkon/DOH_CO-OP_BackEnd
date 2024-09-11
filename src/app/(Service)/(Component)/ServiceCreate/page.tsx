@@ -114,8 +114,8 @@ const ServiceCreate = () => {
             },
             body: JSON.stringify({
               title: title,
-              typeForm: typeForm,
-              typeMember: titleMain?.data,
+              maintype: typeForm,
+              subcategories: titleMain?.data,
               image: `data:${imageType};base64,${base64String}`,
             }),
           });
@@ -128,7 +128,7 @@ const ServiceCreate = () => {
               showConfirmButton: false,
               timer: 1500,
             }).then(() => {
-              router.push(`/CooperativeSocietyAll`);
+              router.back;
             });
             setImage(null);
             setTitleMain(null);
