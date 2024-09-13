@@ -66,14 +66,14 @@ const ServiceCard = ({
   </Card>
 );
 
-const WelfareAll = () => {
+const DepositAll = () => {
   const router = useRouter();
   const isMobile = useMediaQuery("(max-width:768px)");
   const [services, setServices] = useState<Service[]>([]);
   const [rows, setRows] = useState<Data[]>([]);
   const [selectedTab, setSelectedTab] = useState<string>("");
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
-  const typeForm = "สวัสดิการสมาชิก";
+  const typeForm = "บริการเงินฝาก";
 
   const fetchServices = useCallback(async () => {
     try {
@@ -221,4 +221,4 @@ const WelfareAll = () => {
   );
 };
 
-export default WelfareAll;
+export default DepositAll;

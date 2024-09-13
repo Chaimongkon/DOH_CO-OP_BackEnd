@@ -71,11 +71,11 @@ const ServiceCreate = () => {
       img.src = URL.createObjectURL(selectedImage);
 
       img.onload = () => {
-        if (img.width > 1500 || img.height > 1500) {
+        if (img.width > 1500 || img.height > 2800) {
           Swal.fire({
             icon: "error",
             title: "ขนาดภาพใหญ่เกิ๊น",
-            html: `กรุณาเลือกรูปภาพที่มีขนาด <font style="color:red"><b>1500px X 1500px</b></font> <br />หรือ รูปที่เล็กกว่า`,
+            html: `กรุณาเลือกรูปภาพที่มีขนาด <font style="color:red"><b>1500px X 2800px</b></font> <br />หรือ รูปที่เล็กกว่า`,
           });
           setImage(null);
           setIsSelectedimg(false);
@@ -128,7 +128,7 @@ const ServiceCreate = () => {
               showConfirmButton: false,
               timer: 1500,
             }).then(() => {
-              router.back;
+              router.back()
             });
             setImage(null);
             setTitleMain(null);
@@ -150,7 +150,7 @@ const ServiceCreate = () => {
   const getOptions = () => {
     if (typeForm === "สมัครสมาชิก") {
       return Member;
-    } else if (typeForm === "สวัสดิการ") {
+    } else if (typeForm === "สวัสดิการสมาชิก") {
       return Welfare;
     } else if (typeForm === "บริการทำประกัน") {
       return Insurance;
@@ -218,7 +218,7 @@ const ServiceCreate = () => {
           >
             <label>
               รูปภาพ{" "}
-              <span style={{ color: "red" }}>ขนาดภาพสวยๆ 1500px X 1500px</span>
+              <span style={{ color: "red" }}>ขนาดภาพสวยๆ 1500px X 2800px</span>
             </label>
             <br />
             <br />

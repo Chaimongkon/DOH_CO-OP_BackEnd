@@ -64,7 +64,7 @@ const base64ToBlobUrl = (base64: string, type: string) => {
   return URL.createObjectURL(blob);
 };
 
-const WelfareFormAll = () => {
+const BeneficiaryFormAll = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [rows, setRows] = useState<Data[]>([]);
@@ -73,14 +73,31 @@ const WelfareFormAll = () => {
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
   const router = useRouter();
   const typeForm = "หนังสือแต่งตั้งผู้รับโอนประโยชน์";
+
+  // Sorting order for TypeMember
+  const typeMemberOrder = [
+    "สมาชิกสามัญประเภท ก",
+    "สมาชิกสามัญประเภท ข",
+    "สมาชิกสมทบ",
+    "สมาชิกประเภท ก ข สมทบ",
+  ];
+
   const getPaginatedData = useCallback(async () => {
     try {
       const res = await fetch(`${API}/FormDowsloads/GetAll`);
       const data = await res.json();
-      setRows(data.data.filter((row: Data) => row.TypeForm === "หนังสือแต่งตั้งผู้รับโอนประโยชน์"));
+      const filteredData = data.data.filter(
+        (row: Data) => row.TypeForm === typeForm
+      );
 
-      if (data.data.length > 0) {
-        setValue(data.data[0].TypeMember);
+      // Sort rows by TypeMember
+      const sortedData = filteredData.sort((a: Data, b: Data) =>
+        typeMemberOrder.indexOf(a.TypeMember) - typeMemberOrder.indexOf(b.TypeMember)
+      );
+      setRows(sortedData);
+
+      if (sortedData.length > 0) {
+        setValue(sortedData[0].TypeMember);
       }
     } catch (error) {
       console.error("Failed to fetch data:", error);
@@ -116,11 +133,7 @@ const WelfareFormAll = () => {
       }
     } catch (error) {
       console.error("Failed to delete news:", error);
-      Swal.fire(
-        "Error!",
-        "An error occurred while deleting the news.",
-        "error"
-      );
+      Swal.fire("Error!", "An error occurred while deleting the news.", "error");
     }
   };
 
@@ -154,10 +167,7 @@ const WelfareFormAll = () => {
           </Box>
           <TabContext value={value}>
             <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-              <TabList
-                onChange={handleChange}
-                aria-label="lab API tabs example"
-              >
+              <TabList onChange={handleChange} aria-label="lab API tabs example">
                 {uniqueMemberType.map((TypeMember) => (
                   <Tab label={TypeMember} value={TypeMember} key={TypeMember} />
                 ))}
@@ -184,29 +194,19 @@ const WelfareFormAll = () => {
                       {rows
                         .filter((row) => row.TypeMember === TypeMember)
                         .map((row) => (
-                          <TableRow
-                            hover
-                            role="checkbox"
-                            tabIndex={-1}
-                            key={row.Id}
-                          >
+                          <TableRow hover role="checkbox" tabIndex={-1} key={row.Id}>
                             {columns.map((column) => {
                               const cellKey = `${row.Id}-${column.id}`;
                               if (column.id === "Actions") {
                                 return (
-                                  <TableCell
-                                    key={column.id}
-                                    align={column.align}
-                                  >
+                                  <TableCell key={column.id} align={column.align}>
                                     <Button
                                       component="label"
                                       variant="contained"
                                       size="small"
                                       color="warning"
                                       startIcon={<EditIcon />}
-                                      onClick={() =>
-                                        router.push(`/FormDownloadsEdit/${row.Id}`)
-                                      }
+                                      onClick={() => router.push(`/FormDownloadsEdit/${row.Id}`)}
                                     >
                                       Edit
                                     </Button>
@@ -226,10 +226,7 @@ const WelfareFormAll = () => {
                               } else {
                                 const value = row[column.id as keyof Data];
                                 return (
-                                  <TableCell
-                                    key={column.id}
-                                    align={column.align}
-                                  >
+                                  <TableCell key={column.id} align={column.align}>
                                     {column.id === "Image" ? (
                                       <img
                                         src={"/images/backgrounds/pdffile.png"}
@@ -240,9 +237,7 @@ const WelfareFormAll = () => {
                                       <Button
                                         variant="contained"
                                         size="small"
-                                        onClick={() =>
-                                          handleClickOpen(value as string)
-                                        }
+                                        onClick={() => handleClickOpen(value as string)}
                                       >
                                         View PDF
                                       </Button>
@@ -266,12 +261,7 @@ const WelfareFormAll = () => {
             <DialogTitle>PDF Preview</DialogTitle>
             <DialogContent>
               {pdfBase64 && (
-                <iframe
-                  src={pdfBase64}
-                  width="100%"
-                  height="600px"
-                  title="PDF Preview"
-                />
+                <iframe src={pdfBase64} width="100%" height="600px" title="PDF Preview" />
               )}
             </DialogContent>
             <DialogActions>
@@ -286,4 +276,5 @@ const WelfareFormAll = () => {
   );
 };
 
-export default WelfareFormAll;
+export default BeneficiaryFormAll;
+

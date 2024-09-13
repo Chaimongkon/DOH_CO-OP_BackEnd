@@ -1,293 +1,222 @@
 "use client";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Box,
-  Container,
-  Tab,
-  useMediaQuery,
-} from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
+import { Box, Paper, Tab, useMediaQuery } from "@mui/material";
+import Button from "@mui/material/Button";
+import DashboardCard from "@/app/(Dashboard)/components/shared/DashboardCard";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Card } from "antd";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import axios from "axios";
 import Swal from "sweetalert2";
-import Link from "next/link";
-import DashboardCard from "@/app/components/shared/DashboardCard";
 import { useRouter } from "next/navigation";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 
-interface Column {
-  id: "Image" | "Title" | "TypeForm" | "TypeMember" | "PdfFile" | "Actions";
-  label: string;
-  minWidth?: number;
-  align?: "right" | "left" | "center";
+const { Meta } = Card;
+interface Service {
+  id: number;
+  title: string;
+  mainType: string;
+  subcategories: string;
+  image: string;
 }
-
-const columns: Column[] = [
-  { id: "Image", label: "Image", minWidth: 170, align: "center" },
-  { id: "Title", label: "ชื่อแบบฟอร์ม", minWidth: 170, align: "left" },
-  { id: "TypeForm", label: "ประเภท", minWidth: 100, align: "left" },
-  { id: "TypeMember", label: "ประเภทสมาชิก", minWidth: 100, align: "left" },
-  { id: "PdfFile", label: "PDF File", minWidth: 170, align: "center" },
-  { id: "Actions", label: "Actions", minWidth: 170, align: "center" },
-];
 
 interface Data {
   Id: number;
   Title: string;
-  TypeForm: string;
-  TypeMember: string;
-  PdfFile: string;
+  MainType: string;
+  Subcategories: string;
+  Image: string;
 }
 
-const base64ToBlobUrl = (base64: string, type: string) => {
+const base64ToBlobUrl = (base64: string) => {
   const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
+  const byteNumbers = Array.from(byteCharacters, (char) => char.charCodeAt(0));
   const byteArray = new Uint8Array(byteNumbers);
-  const blob = new Blob([byteArray], { type });
+  const blob = new Blob([byteArray], { type: "image/webp" });
   return URL.createObjectURL(blob);
 };
 
-const InsuranceAll = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery("(max-width: 768px)");
-  const [rows, setRows] = useState<Data[]>([]);
-  const [open, setOpen] = useState(false);
-  const [pdfBase64, setPdfBase64] = useState<string | null>(null);
-  const API = process.env.NEXT_PUBLIC_API_BASE_URL;
-  const router = useRouter();
-  const typeForm = "บริการทำประกัน";
-  const getPaginatedData = useCallback(async () => {
-    try {
-      const res = await fetch(`${API}/SRD/GetAll`);
-      const data = await res.json();
-      setRows(data.data.filter((row: Data) => row.TypeForm === `${typeForm}`));
+const ServiceCard = ({
+  service,
+  isMobile,
+  onDelete,
+  onEdit,
+}: {
+  service: Service;
+  isMobile: boolean;
+  onDelete: () => void;
+  onEdit: () => void;
+}) => (
+  <Card
+    hoverable
+    style={{
+      width: isMobile ? "100%" : 400,
+      maxWidth: 400,
+      textAlign: "center",
+      margin: isMobile ? "0 auto" : undefined,
+    }}
+    cover={<img alt="service" src={service.image} />}
+    actions={[
+      <EditOutlined key="edit" onClick={onEdit} />,
+      <DeleteOutlined key="delete" onClick={onDelete} />,
+    ]}
+  >
+    <Meta style={{ fontFamily: "Mitr" }} title={service.subcategories} />
+  </Card>
+);
 
-      if (data.data.length > 0) {
-        setValue(data.data[0].TypeMember);
-      }
+const InsuranceAll = () => {
+  const router = useRouter();
+  const isMobile = useMediaQuery("(max-width:768px)");
+  const [services, setServices] = useState<Service[]>([]);
+  const [rows, setRows] = useState<Data[]>([]);
+  const [selectedTab, setSelectedTab] = useState<string>("");
+  const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const typeForm = "บริการทำประกัน";
+
+  const fetchServices = useCallback(async () => {
+    try {
+      const response = await fetch(`${API}/Services/GetAll`);
+      if (!response.ok) throw new Error("Network response was not ok");
+
+      const data: Data[] = await response.json();
+
+      const filteredData = data.filter((item) => item.MainType === typeForm);
+
+      setRows(filteredData);
+
+      const processedData = filteredData.map((item: Data) => ({
+        id: item.Id,
+        title: item.Title,
+        mainType: item.MainType,
+        subcategories: item.Subcategories,
+        image: base64ToBlobUrl(item.Image),
+      }));
+
+      setServices(processedData);
+
+      const uniqueTypes = Array.from(
+        new Set(filteredData.map((item) => item.Subcategories))
+      ).sort((a, b) => {
+        const order = [
+          "สมาชิกสามัญประเภท ก",
+          "สมาชิกสามัญประเภท ข",
+          "สมาชิกสมทบ",
+        ];
+        return order.indexOf(a) - order.indexOf(b);
+      });
+
+      if (uniqueTypes.length > 0) setSelectedTab(uniqueTypes[0]);
     } catch (error) {
-      console.error("Failed to fetch data:", error);
+      console.error("Failed to fetch services:", error);
     }
-  }, [API]);
+  }, [API, typeForm]);
 
   useEffect(() => {
-    getPaginatedData();
-  }, [getPaginatedData]);
-
-  const handleClickOpen = (base64: string) => {
-    const blobUrl = base64ToBlobUrl(base64, "application/pdf");
-    setPdfBase64(blobUrl);
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    setPdfBase64(null);
-  };
+    fetchServices();
+  }, [fetchServices]);
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await axios.delete(`${API}/SRD/Delete`, {
+      const response = await axios.delete(`${API}/Services/Delete`, {
         data: { id },
       });
-
       if (response.status === 200) {
-        Swal.fire("Deleted!", "The news has been deleted.", "success");
-        setRows((prevNews) => prevNews.filter((news) => news.Id !== id));
+        Swal.fire("Deleted!", "The service has been deleted.", "success");
+        setServices((prev) => prev.filter((service) => service.id !== id));
       } else {
-        Swal.fire("Error!", "Failed to delete the news.", "error");
+        throw new Error("Failed to delete");
       }
     } catch (error) {
-      console.error("Failed to delete news:", error);
+      console.error("Failed to delete service:", error);
       Swal.fire(
         "Error!",
-        "An error occurred while deleting the news.",
+        "An error occurred while deleting the service.",
         "error"
       );
     }
   };
 
-  const [value, setValue] = useState("");
-
-  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
-    setValue(newValue);
+  const handleChangeTab = (event: React.SyntheticEvent, newValue: string) => {
+    setSelectedTab(newValue);
   };
 
-  const uniqueMemberType = useMemo(
-    () => Array.from(new Set(rows.map((row) => row.TypeMember))),
+  const filteredServices = useMemo(
+    () =>
+      services.filter(
+        (service) =>
+          service.subcategories === selectedTab && service.mainType === typeForm
+      ),
+    [services, selectedTab, typeForm]
+  );
+
+  const uniqueTypes = useMemo(
+    () =>
+      Array.from(new Set(rows.map((item) => item.Subcategories))).sort(
+        (a, b) => {
+          const order = [
+            "Ordinary member type A",
+            "Ordinary member type B",
+            "Associate member",
+          ];
+          return order.indexOf(a) - order.indexOf(b);
+        }
+      ),
     [rows]
   );
 
   return (
     <DashboardCard title={`จัดการ ${typeForm}`}>
-      <Container>
-        <Paper>
-          <Box display="flex" justifyContent="space-between" mb={2}>
-            <Box></Box>
-            <Link
-              href={`/ServiceCreate?typeForm=${encodeURIComponent(
-                typeForm
-              )}`}
+      <Paper>
+        <Box display="flex" justifyContent="space-between" mb={2}>
+          <Box></Box>
+          <Link
+            href={`/ServiceCreate?typeForm=${encodeURIComponent(typeForm)}`}
+          >
+            <Button
+              variant="contained"
+              size="small"
+              color="success"
+              startIcon={<AddCircleIcon />}
             >
-              <Button
-                variant="contained"
-                size="small"
-                color="success"
-                startIcon={<AddCircleIcon />}
-              >
-                Add {typeForm}
-              </Button>
-            </Link>
+              Add {typeForm}
+            </Button>
+          </Link>
+        </Box>
+        <TabContext value={selectedTab}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <TabList onChange={handleChangeTab} aria-label="service tabs">
+              {uniqueTypes.map((type) => (
+                <Tab label={type} value={type} key={type} />
+              ))}
+            </TabList>
           </Box>
-          <TabContext value={value}>
-            <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-              <TabList
-                onChange={handleChange}
-                aria-label="lab API tabs example"
+          {uniqueTypes.map((type) => (
+            <TabPanel key={type} value={type}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  justifyContent: "center",
+                  gap: 3,
+                  p: 2,
+                }}
               >
-                {uniqueMemberType.map((TypeMember) => (
-                  <Tab label={TypeMember} value={TypeMember} key={TypeMember} />
+                {filteredServices.map((service) => (
+                  <ServiceCard
+                    key={service.id}
+                    service={service}
+                    isMobile={isMobile}
+                    onDelete={() => handleDelete(service.id)}
+                    onEdit={() => router.push(`/ServiceEdit/${service.id}`)}
+                  />
                 ))}
-              </TabList>
-            </Box>
-            {uniqueMemberType.map((TypeMember, index) => (
-              <TabPanel key={index} value={TypeMember}>
-                <TableContainer>
-                  <Table stickyHeader aria-label="sticky table">
-                    <TableHead>
-                      <TableRow>
-                        {columns.map((column) => (
-                          <TableCell
-                            key={column.id}
-                            align={column.align}
-                            style={{ top: 5, minWidth: column.minWidth }}
-                          >
-                            {column.label}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {rows
-                        .filter((row) => row.TypeMember === TypeMember)
-                        .map((row) => (
-                          <TableRow
-                            hover
-                            role="checkbox"
-                            tabIndex={-1}
-                            key={row.Id}
-                          >
-                            {columns.map((column) => {
-                              const cellKey = `${row.Id}-${column.id}`;
-                              if (column.id === "Actions") {
-                                return (
-                                  <TableCell
-                                    key={column.id}
-                                    align={column.align}
-                                  >
-                                    <Button
-                                      component="label"
-                                      variant="contained"
-                                      size="small"
-                                      color="warning"
-                                      startIcon={<EditIcon />}
-                                      onClick={() =>
-                                        router.push(
-                                          `/StatuteRegularityDeclareEdit/${row.Id}`
-                                        )
-                                      }
-                                    >
-                                      Edit
-                                    </Button>
-                                    <Button
-                                      component="label"
-                                      variant="contained"
-                                      size="small"
-                                      color="error"
-                                      startIcon={<DeleteIcon />}
-                                      onClick={() => handleDelete(row.Id)}
-                                      sx={{ ml: 1 }}
-                                    >
-                                      Delete
-                                    </Button>
-                                  </TableCell>
-                                );
-                              } else {
-                                const value = row[column.id as keyof Data];
-                                return (
-                                  <TableCell
-                                    key={column.id}
-                                    align={column.align}
-                                  >
-                                    {column.id === "Image" ? (
-                                      <img
-                                        src={"/images/backgrounds/pdffile.png"}
-                                        alt={row.TypeMember}
-                                        style={{ width: "100px" }}
-                                      />
-                                    ) : column.id === "PdfFile" ? (
-                                      <Button
-                                        variant="contained"
-                                        size="small"
-                                        onClick={() =>
-                                          handleClickOpen(value as string)
-                                        }
-                                      >
-                                        View PDF
-                                      </Button>
-                                    ) : (
-                                      value
-                                    )}
-                                  </TableCell>
-                                );
-                              }
-                            })}
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </TabPanel>
-            ))}
-          </TabContext>
-
-          <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
-            <DialogTitle>PDF Preview</DialogTitle>
-            <DialogContent>
-              {pdfBase64 && (
-                <iframe
-                  src={pdfBase64}
-                  width="100%"
-                  height="600px"
-                  title="PDF Preview"
-                />
-              )}
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleClose} color="primary">
-                Close
-              </Button>
-            </DialogActions>
-          </Dialog>
-        </Paper>
-      </Container>
+              </Box>
+            </TabPanel>
+          ))}
+        </TabContext>
+      </Paper>
     </DashboardCard>
   );
 };

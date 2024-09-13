@@ -38,9 +38,9 @@ interface Column {
 
 const columns: Column[] = [
   { id: "Image", label: "Image", minWidth: 170, align: "center" },
-  { id: "Title", label: "Title", minWidth: 170, align: "left" },
-  { id: "TypeForm", label: "TypeForm", minWidth: 100, align: "left" },
-  { id: "TypeMember", label: "TypeMember", minWidth: 100, align: "left" },
+  { id: "Title", label: "ชื่อแบบฟอร์ม", minWidth: 170, align: "left" },
+  { id: "TypeForm", label: "ประเภทสวัสดิการ", minWidth: 100, align: "left" },
+  { id: "TypeMember", label: "ประเภทสมาชิก", minWidth: 100, align: "left" },
   { id: "PdfFile", label: "PDF File", minWidth: 170, align: "center" },
   { id: "Actions", label: "Actions", minWidth: 170, align: "center" },
 ];
@@ -74,13 +74,29 @@ const MembershipFormAll = () => {
   const router = useRouter();
   const typeForm = "แบบฟอร์มสมัครสมาชิก";
 
+  // Sorting order for TypeMember
+  const typeMemberOrder = [
+    "สมาชิกสามัญประเภท ก",
+    "สมาชิกสามัญประเภท ข",
+    "สมาชิกสมทบ",
+  ];
+
   const getPaginatedData = useCallback(async () => {
     try {
       const res = await fetch(`${API}/FormDowsloads/GetAll`);
       const data = await res.json();
-      setRows(data.data.filter((row: Data) => row.TypeForm === "แบบฟอร์มสมัครสมาชิก"));
-      if (data.data.length > 0) {
-        setValue(data.data[0].TypeMember);
+      const filteredData = data.data.filter(
+        (row: Data) => row.TypeForm === typeForm
+      );
+
+      // Sort rows by TypeMember
+      const sortedData = filteredData.sort((a: Data, b: Data) =>
+        typeMemberOrder.indexOf(a.TypeMember) - typeMemberOrder.indexOf(b.TypeMember)
+      );
+      setRows(sortedData);
+
+      if (sortedData.length > 0) {
+        setValue(sortedData[0].TypeMember);
       }
     } catch (error) {
       console.error("Failed to fetch data:", error);
@@ -116,11 +132,7 @@ const MembershipFormAll = () => {
       }
     } catch (error) {
       console.error("Failed to delete news:", error);
-      Swal.fire(
-        "Error!",
-        "An error occurred while deleting the news.",
-        "error"
-      );
+      Swal.fire("Error!", "An error occurred while deleting the news.", "error");
     }
   };
 
@@ -154,10 +166,7 @@ const MembershipFormAll = () => {
           </Box>
           <TabContext value={value}>
             <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-              <TabList
-                onChange={handleChange}
-                aria-label="lab API tabs example"
-              >
+              <TabList onChange={handleChange} aria-label="lab API tabs example">
                 {uniqueMemberType.map((TypeMember) => (
                   <Tab label={TypeMember} value={TypeMember} key={TypeMember} />
                 ))}
@@ -184,29 +193,19 @@ const MembershipFormAll = () => {
                       {rows
                         .filter((row) => row.TypeMember === TypeMember)
                         .map((row) => (
-                          <TableRow
-                            hover
-                            role="checkbox"
-                            tabIndex={-1}
-                            key={row.Id}
-                          >
+                          <TableRow hover role="checkbox" tabIndex={-1} key={row.Id}>
                             {columns.map((column) => {
                               const cellKey = `${row.Id}-${column.id}`;
                               if (column.id === "Actions") {
                                 return (
-                                  <TableCell
-                                    key={column.id}
-                                    align={column.align}
-                                  >
+                                  <TableCell key={column.id} align={column.align}>
                                     <Button
                                       component="label"
                                       variant="contained"
                                       size="small"
                                       color="warning"
                                       startIcon={<EditIcon />}
-                                      onClick={() =>
-                                        router.push(`/FormDownloadsEdit/${row.Id}`)
-                                      }
+                                      onClick={() => router.push(`/FormDownloadsEdit/${row.Id}`)}
                                     >
                                       Edit
                                     </Button>
@@ -226,10 +225,7 @@ const MembershipFormAll = () => {
                               } else {
                                 const value = row[column.id as keyof Data];
                                 return (
-                                  <TableCell
-                                    key={column.id}
-                                    align={column.align}
-                                  >
+                                  <TableCell key={column.id} align={column.align}>
                                     {column.id === "Image" ? (
                                       <img
                                         src={"/images/backgrounds/pdffile.png"}
@@ -240,9 +236,7 @@ const MembershipFormAll = () => {
                                       <Button
                                         variant="contained"
                                         size="small"
-                                        onClick={() =>
-                                          handleClickOpen(value as string)
-                                        }
+                                        onClick={() => handleClickOpen(value as string)}
                                       >
                                         View PDF
                                       </Button>
@@ -266,12 +260,7 @@ const MembershipFormAll = () => {
             <DialogTitle>PDF Preview</DialogTitle>
             <DialogContent>
               {pdfBase64 && (
-                <iframe
-                  src={pdfBase64}
-                  width="100%"
-                  height="600px"
-                  title="PDF Preview"
-                />
+                <iframe src={pdfBase64} width="100%" height="600px" title="PDF Preview" />
               )}
             </DialogContent>
             <DialogActions>
@@ -287,3 +276,4 @@ const MembershipFormAll = () => {
 };
 
 export default MembershipFormAll;
+

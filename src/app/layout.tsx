@@ -2,6 +2,7 @@
 import { baselightTheme } from "@/utils/theme/DefaultColors";
 import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider } from "@/utils/theme/ThemeContext";
+import { SessionProvider } from 'next-auth/react';
 
 export default function RootLayout({
   children,
@@ -18,7 +19,7 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <CssBaseline />
-          {children}
+          <SessionProvider>{children}</SessionProvider>
         </ThemeProvider>
       </body>
     </html>
