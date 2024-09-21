@@ -25,6 +25,7 @@ import {
 } from "@mui/base/Unstable_NumberInput";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import DescriptionIcon from "@mui/icons-material/Description";
 
 const NumberInput = React.forwardRef(function CustomNumberInput(
   props: NumberInputProps,
@@ -206,7 +207,24 @@ const ExcelUpload = () => {
 
   return (
     <DashboardCard title="Upload Excel File">
-      <div>
+   <div style={{ textAlign: "center", marginBottom: "20px" }}>
+      <MuiButton
+        component="a"
+        href="/fileexample/election.xlsx"
+        download
+        role={undefined}
+        variant="contained"
+        tabIndex={-1}
+        startIcon={<DescriptionIcon />}
+        sx={{
+          backgroundColor: "green",
+          "&:hover": { backgroundColor: "darkgreen" },
+          margin: "20px auto", // Add margin for space
+        }}
+      >
+        ตัวอย่าง Excel
+      </MuiButton>
+
         <div
           className="form-group"
           style={{

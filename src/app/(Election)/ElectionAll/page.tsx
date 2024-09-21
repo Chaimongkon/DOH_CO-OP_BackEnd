@@ -31,7 +31,7 @@ import { useRouter } from "next/navigation";
 import Delete from "@mui/icons-material/Delete";
 
 interface Column {
-  id: "No" | "Member" | "IdCard" | "FullName" | "FieldNumber" | "SequenceNumber";
+  id: "No" | "Member" | "IdCard" | "FullName" | "Department" | "FieldNumber" | "SequenceNumber";
   label: string;
   minWidth?: number;
   align?: "right" | "left" | "center";
@@ -42,6 +42,7 @@ const columns: Column[] = [
   { id: "Member", label: "เลขสมาชิก", minWidth: 170, align: "center" },
   { id: "IdCard", label: "เลขบัตรประชาชน", minWidth: 170, align: "left" },
   { id: "FullName", label: "ชื่อ - นามสกุล", minWidth: 100, align: "left" },
+  { id: "Department", label: "หน่วยงาน", minWidth: 100, align: "left" },
   { id: "FieldNumber", label: "ช่อง", minWidth: 170, align: "center" },
   { id: "SequenceNumber", label: "ลำดับ", minWidth: 170, align: "center" },
 ];
@@ -51,6 +52,7 @@ interface Data {
   Member: string;
   IdCard: string;
   FullName: string;
+  Department: string;
   FieldNumber: string;
   SequenceNumber: string;
   MemberType: string;

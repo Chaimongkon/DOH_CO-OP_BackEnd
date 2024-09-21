@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     const params: (string | number)[] = [];
 
     let query = `
-      SELECT SQL_CALC_FOUND_ROWS Id, Member, IdCard, FullName, FieldNumber, SequenceNumber, MemberType
+      SELECT SQL_CALC_FOUND_ROWS Id, Member, IdCard, FullName, Department, FieldNumber, SequenceNumber, MemberType
       FROM election
     `;
 
