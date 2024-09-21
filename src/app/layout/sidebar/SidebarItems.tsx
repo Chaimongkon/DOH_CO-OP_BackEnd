@@ -1,31 +1,81 @@
+"use client";
+
 import React from "react";
 import Menuitems from "./MenuItems";
 import { usePathname } from "next/navigation";
 import { Box, List } from "@mui/material";
 import NavItem from "./NavItem";
 import NavGroup from "./NavGroup/NavGroup";
+import { useSession } from "next-auth/react";
 
-const SidebarItems = ({ toggleMobileSidebar }: any) => {
+interface MenuItem {
+  id?: string;
+  navlabel?: boolean;
+  subheader?: string;
+  title?: string;
+  icon?: React.ElementType;
+  href?: string;
+  roles?: string[];
+  children?: MenuItem[];
+}
+
+interface SidebarItemsProps {
+  toggleMobileSidebar?: () => void;
+}
+
+const SidebarItems: React.FC<SidebarItemsProps> = ({ toggleMobileSidebar }) => {
   const pathname = usePathname();
   const pathDirect = pathname;
+
+  const { data: session } = useSession();
+  //guest
+  const userRole = session?.user?.userrole || "SuperAdmin";
+
+  const filterMenuByRole = (
+    menuItems: MenuItem[],
+    role: string
+  ): MenuItem[] => {
+    return menuItems
+      .filter((item) => {
+        if (item.roles && !item.roles.includes(role)) {
+          return false;
+        }
+        return true;
+      })
+      .map((item) => {
+        if (item.children) {
+          const filteredChildren = filterMenuByRole(item.children, role);
+          return { ...item, children: filteredChildren };
+        }
+        return item;
+      })
+      .filter((item) => {
+        if (item.children && item.children.length === 0) {
+          return false;
+        }
+        return true;
+      });
+  };
+
+  const filteredMenuItems = filterMenuByRole(Menuitems, userRole);
 
   return (
     <Box sx={{ px: "20px" }}>
       <List sx={{ pt: 0 }} className="sidebarNav" component="div">
-        {Menuitems.map((item) => {
-          // {/********SubHeader**********/}
+        {filteredMenuItems.map((item) => {
           if (item.subheader) {
             return <NavGroup item={item} key={item.subheader} />;
-
-            // {/********If Sub Menu**********/}
-            /* eslint no-else-return: "off" */
           } else {
             return (
               <NavItem
                 item={item}
                 key={item.id}
                 pathDirect={pathDirect}
-                onClick={toggleMobileSidebar}
+                onClick={(event) => {
+                  if (toggleMobileSidebar) {
+                    toggleMobileSidebar();
+                  }
+                }}
               />
             );
           }
@@ -34,4 +84,5 @@ const SidebarItems = ({ toggleMobileSidebar }: any) => {
     </Box>
   );
 };
+
 export default SidebarItems;

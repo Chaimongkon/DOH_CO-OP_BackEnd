@@ -1,4 +1,7 @@
+// next.config.mjs
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
-
-export default nextConfig;
+export default {
+    productionBrowserSourceMaps: true,
+    // การตั้งค่าอื่น ๆ
+  };
+  

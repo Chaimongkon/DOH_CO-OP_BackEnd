@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await connection.execute(
-      "INSERT INTO users (FullName, UserName, PassWord) VALUES (?, ?, ?)",
+      "INSERT INTO users (FullName, UserName, PassWord, UserRole) VALUES (?, ?, ?, 'User')",
       [name, username, hashedPassword]
     );
 

@@ -20,11 +20,19 @@ import Link from "next/link";
 import CustomTextField from "../components/forms/theme-elements/CustomTextField";
 
 export default function LoginPage() {
-  const [form, setForm] = useState({ username: "", password: "" });
+  const [form, setForm] = useState({
+    username: "",
+    password: "",
+    remember: false,
+  });
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,6 +42,7 @@ export default function LoginPage() {
       redirect: false,
       username: form.username,
       password: form.password,
+      remember: form.remember,
     });
 
     if (res?.error) {
@@ -109,8 +118,8 @@ export default function LoginPage() {
                       fullWidth
                       id="username"
                       name="username"
-                      onChange={handleChange} // Add this to handle input change
-                      required // Add this to mark the field as required
+                      onChange={handleChange}
+                      required
                     />
                   </Box>
                   <Box mt="25px">
@@ -129,7 +138,7 @@ export default function LoginPage() {
                       fullWidth
                       id="password"
                       name="password"
-                      onChange={handleChange} // Add this to handle input change
+                      onChange={handleChange}
                       required
                     />
                   </Box>
@@ -141,8 +150,14 @@ export default function LoginPage() {
                   >
                     <FormGroup>
                       <FormControlLabel
-                        control={<Checkbox defaultChecked />}
-                        label="Remeber this Device"
+                        control={
+                          <Checkbox
+                            name="remember"
+                            checked={form.remember}
+                            onChange={handleChange}
+                          />
+                        }
+                        label="Remember this Device"
                       />
                     </FormGroup>
                     <Typography
@@ -170,8 +185,17 @@ export default function LoginPage() {
                   </Button>
                 </Box>
               </form>
-              <Stack direction="row" spacing={1} justifyContent="center" mt={3}>
-                <Typography color="textSecondary" variant="h6" fontWeight="500">
+              <Stack
+                direction="row"
+                spacing={1}
+                justifyContent="center"
+                mt={3}
+              >
+                <Typography
+                  color="textSecondary"
+                  variant="h6"
+                  fontWeight="500"
+                >
                   New to Spike?
                 </Typography>
                 <Typography

@@ -1,14 +1,11 @@
-'use client'
-import { Grid, Box } from '@mui/material';
-import PageContainer from '@/app/(Dashboard)/components/container/PageContainer';
-// components
-import TrafficDistribution from '@/app/(Dashboard)/components/dashboard/TrafficDistribution';
-import UpcomingSchedules from '@/app/(Dashboard)/components/dashboard/UpcomingSchedules';
-import TopPayingClients from '@/app/(Dashboard)/components/dashboard/TopPayingClients';
-
-
-import NumberOfWebsiteVisitsPerDay from './components/dashboard/NumberOfWebsiteVisitsPerDay';
-import NumberOfWebsiteVisitsToDay from './components/dashboard/NumberOfWebsiteVisitsToDay';
+"use client";
+import { Grid, Box } from "@mui/material";
+import PageContainer from "@/app/(Dashboard)/components/container/PageContainer";
+import NumberOfWebsiteVisitsPerDay from "./components/dashboard/NumberOfWebsiteVisitsPerDay";
+import NumberOfWebsiteVisitsToDay from "./components/dashboard/NumberOfWebsiteVisitsToDay";
+import CookieSchedules from "./components/dashboard/CookieSchedules";
+import LatestCookieConsents from "./components/dashboard/LatestCookieConsents";
+import NumberOfWebsiteVisitsWeek from "./components/dashboard/NumberOfWebsiteVisitsWeek";
 
 const Dashboard = () => {
   return (
@@ -24,23 +21,21 @@ const Dashboard = () => {
                 <NumberOfWebsiteVisitsToDay />
               </Grid>
               <Grid item xs={12}>
-                <TrafficDistribution />
+                <NumberOfWebsiteVisitsWeek />
               </Grid>
             </Grid>
           </Grid>
           <Grid item xs={12} lg={4}>
-            <UpcomingSchedules />
+            <CookieSchedules />
           </Grid>
           <Grid item xs={12} lg={8}>
-            <TopPayingClients />
+            <LatestCookieConsents />
           </Grid>
-          <Grid item xs={12}>
-    
-          </Grid>
+          <Grid item xs={12}></Grid>
         </Grid>
       </Box>
     </PageContainer>
-  )
-}
+  );
+};
 
 export default Dashboard;

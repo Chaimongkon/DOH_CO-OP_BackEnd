@@ -27,7 +27,6 @@ const Sidebar = ({
           borderRadius: "13px",
         }}
       >
-        {/* Sidebar for desktop */}
         <Drawer
           anchor="left"
           open={isSidebarOpen}

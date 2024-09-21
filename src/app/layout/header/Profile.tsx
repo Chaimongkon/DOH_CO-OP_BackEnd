@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Link from "next/link";
 import {
   Avatar,
   Box,
@@ -10,14 +9,21 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-
-import { IconListCheck, IconMail, IconUser } from "@tabler/icons-react";
+import {
+  IconListCheck,
+  IconMail,
+  IconUser,
+} from "@tabler/icons-react";
+import { signOut, useSession  } from "next-auth/react"; // Import signOut from NextAuth.js
 
 const Profile = () => {
-  const [anchorEl2, setAnchorEl2] = useState(null);
-  const handleClick2 = (event: any) => {
+  const [anchorEl2, setAnchorEl2] = useState<null | HTMLElement>(null);
+  const { data: session } = useSession();
+  
+  const handleClick2 = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl2(event.currentTarget);
   };
+
   const handleClose2 = () => {
     setAnchorEl2(null);
   };
@@ -26,12 +32,12 @@ const Profile = () => {
     <Box>
       <IconButton
         size="large"
-        aria-label="show 11 new notifications"
+        aria-label="profile options"
         color="inherit"
-        aria-controls="msgs-menu"
+        aria-controls="profile-menu"
         aria-haspopup="true"
         sx={{
-          ...(typeof anchorEl2 === "object" && {
+          ...(Boolean(anchorEl2) && {
             color: "primary.main",
           }),
         }}
@@ -39,7 +45,7 @@ const Profile = () => {
       >
         <Avatar
           src="/images/profile/user-1.jpg"
-          alt="image"
+          alt={session?.user?.name || "Profile Picture"}
           sx={{
             width: 35,
             height: 35,
@@ -47,10 +53,10 @@ const Profile = () => {
         />
       </IconButton>
       {/* ------------------------------------------- */}
-      {/* Message Dropdown */}
+      {/* Profile Dropdown */}
       {/* ------------------------------------------- */}
       <Menu
-        id="msgs-menu"
+        id="profile-menu"
         anchorEl={anchorEl2}
         keepMounted
         open={Boolean(anchorEl2)}
@@ -83,10 +89,12 @@ const Profile = () => {
         </MenuItem>
         <Box mt={1} py={1} px={2}>
           <Button
-            href="/"
             variant="outlined"
             color="primary"
-            component={Link}
+            onClick={() => {
+              signOut({ callbackUrl: "/Login" }); // Redirect to login page after logout
+              handleClose2(); // Close the menu
+            }}
             fullWidth
           >
             Logout
