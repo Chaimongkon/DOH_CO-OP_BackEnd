@@ -61,6 +61,18 @@ useEffect(() => {
 
   return (
     <div>
+      {/* <div>
+    {departments.map((department, index) => (
+      <div key={index}>
+        <h3>{department.name}</h3>
+        <ul>
+          {department.members.map((member, memberIndex) => (
+            <li key={memberIndex}>{member.FullName}</li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div> */}
       <button onClick={handleGeneratePDF}>Generate PDF</button>
       <ProgressBar progress={progress} />
     </div>

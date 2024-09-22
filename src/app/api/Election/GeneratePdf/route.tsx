@@ -32,7 +32,6 @@ export const POST = async (req: NextRequest) => {
       // Define margins (0.4 inch margins)
       const margin = 28.8; // 0.4 inch = 28.8 points
       const contentWidth = width - (2 * margin); // Available width after margins
-      const contentHeight = height - (2 * margin); // Available height after margins
 
       // Embed the custom font
       const customFont = await pdfDoc.embedFont(fontBytes);
@@ -70,32 +69,70 @@ export const POST = async (req: NextRequest) => {
       // Headers
       const headers = ["ลำดับที่", "เลขสมาชิก", "ชื่อ - สกุล", "หน่วยงาน", "ช่อง ลำดับที่"];
 
-      // Draw the table headers (center-aligned)
+      // Draw the table headers (center-aligned horizontally and vertically)
+      const headerRowHeight = 30;
+      const headerYPosition = height - margin - 40;
+
       headers.forEach((header, index) => {
         const xPosition = Object.values(positions)[index] + (Object.values(columnWidths)[index] / 2);
+        const yCentered = headerYPosition - (headerRowHeight / 2) + (fontSize / 2); // Adjust for vertical centering
+
         page.drawText(header, {
-          x: xPosition - (customFont.widthOfTextAtSize(header, fontSize) / 2), // Center the text
-          y: height - margin - 40, // Adjust for header margin
+          x: xPosition - (customFont.widthOfTextAtSize(header, fontSize) / 2), // Center horizontally
+          y: yCentered, // Center vertically
           size: fontSize,
           font: customFont,
           color: rgb(0, 0, 0),
         });
       });
 
+      // Draw header borders (vertical and horizontal)
+      const headerBottomY = height - margin - 40 - headerRowHeight; // Y position for the bottom of the header
+      const drawHeaderBorders = () => {
+        // Draw horizontal top and bottom borders for the header
+        page.drawLine({
+          start: { x: margin, y: height - margin - 40 }, // Top line
+          end: { x: width - margin, y: height - margin - 40 },
+          thickness: 1,
+          color: rgb(0, 0, 0),
+        });
+        page.drawLine({
+          start: { x: margin, y: headerBottomY }, // Bottom line
+          end: { x: width - margin, y: headerBottomY },
+          thickness: 1,
+          color: rgb(0, 0, 0),
+        });
+
+        // Draw vertical lines for each column in the header
+        const xPositions = Object.values(positions);
+        xPositions.push(width - margin); // Add the last right border
+        xPositions.forEach(x => {
+          page.drawLine({
+            start: { x, y: height - margin - 40 }, // Start at top of header
+            end: { x, y: headerBottomY }, // End at bottom of header
+            thickness: 1,
+            color: rgb(0, 0, 0),
+          });
+        });
+      };
+
+      // Draw the borders for the header
+      drawHeaderBorders();
+
       // Draw borders (horizontal and vertical) for the entire table
       const rowHeight = 30; // Space between each row
-      let yPosition = height - margin - 70; // Start position for the first row after headers
+      let yPosition = headerBottomY - rowHeight; // Start position for the first row after headers
 
-      // Function to draw all the borders
+      // Function to draw all the borders for the rows
       const drawTableBorders = (rowCount: number) => {
         // Draw vertical lines for the columns
         const xPositions = Object.values(positions);
         xPositions.push(width - margin); // Add the last right border
 
-        // Draw horizontal and vertical lines
+        // Draw horizontal and vertical lines for rows
         for (let row = 0; row <= rowCount; row++) {
+          const yLinePosition = headerBottomY - (row * rowHeight);
           // Draw horizontal line for the current row
-          const yLinePosition = height - margin - 40 - (row * rowHeight);
           page.drawLine({
             start: { x: margin, y: yLinePosition },
             end: { x: width - margin, y: yLinePosition },
@@ -106,8 +143,8 @@ export const POST = async (req: NextRequest) => {
           // Draw vertical lines for the columns
           xPositions.forEach(x => {
             page.drawLine({
-              start: { x, y: height - margin - 40 }, // Top of the table
-              end: { x, y: yLinePosition }, // Bottom (current row)
+              start: { x, y: headerBottomY }, // Start from bottom of header
+              end: { x, y: yLinePosition }, // Bottom of row
               thickness: 1,
               color: rgb(0, 0, 0),
             });
@@ -115,10 +152,10 @@ export const POST = async (req: NextRequest) => {
         }
       };
 
-      // Draw the borders (header + rows)
+      // Draw the borders for the rows (data rows)
       drawTableBorders(department.members.length);
 
-      // Draw the table data (center-aligned)
+      // Draw the table data (center-aligned horizontally and vertically)
       department.members.forEach((member: any, index: number) => {
         const memberData = [
           (index + 1).toString(), // ลำดับที่ (index)
@@ -128,12 +165,13 @@ export const POST = async (req: NextRequest) => {
           `${member.FieldNumber} ${member.SequenceNumber}`, // ช่อง ลำดับที่
         ];
 
-        // Draw the member data into the table (centered)
         memberData.forEach((text, idx) => {
           const xPosition = Object.values(positions)[idx] + (Object.values(columnWidths)[idx] / 2);
+          const yCentered = yPosition + (rowHeight / 2) - (fontSize / 2); // Adjust for vertical centering
+
           page.drawText(text, {
-            x: xPosition - (customFont.widthOfTextAtSize(text, fontSize) / 2), // Center the text
-            y: yPosition,
+            x: xPosition - (customFont.widthOfTextAtSize(text, fontSize) / 2), // Center horizontally
+            y: yCentered, // Center vertically
             size: fontSize,
             font: customFont,
             color: rgb(0, 0, 0),
