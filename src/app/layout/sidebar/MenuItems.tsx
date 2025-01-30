@@ -10,7 +10,9 @@ import {
   IconFolderOpen,
   IconApps,
   IconHours24,
-  IconUserStar
+  IconUserStar,
+  IconMickey,
+  IconProgressHelp
 } from "@tabler/icons-react";
 import { uniqueId } from "lodash";
 const StyledIcon = styled(IconPercentage100)`
@@ -31,10 +33,45 @@ const MenuItems = [
   },
   {
     id: uniqueId(),
-    title: "เลือกตั้งสหกรณ์ฯ",
-    icon: IconShieldCheck,
-    href: "/ElectionAll",
+    title: "AnimationsHome",
+    icon: IconMickey,
+    href: "/ParticlesAll",
     roles: ["SuperAdmin"],
+  },
+  // {
+  //   id: uniqueId(),
+  //   title: "เลือกตั้งสหกรณ์ฯ",
+  //   icon: IconShieldCheck,
+  //   href: "/ElectionAll",
+  //   roles: ["SuperAdmin"],
+  // },
+  {
+    id: uniqueId(),
+    title: "เลือกตั้งคณะกรรมการ", 
+    icon: IconShieldCheck,
+    children: [
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "เลือกตั้งสหกรณ์ฯ",
+        href: "/ElectionAll",
+        roles: ["SuperAdmin"],
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "รายชื่อเลือกตั้งตามหน่วยงาน",
+        href: "/ElectionDepartmentAll",
+        roles: ["SuperAdmin"],
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "วิดีโอคณะกรรมการ",
+        href: "/ElectionVideoAll",
+        roles: ["SuperAdmin"],
+      },
+    ],
   },
   {
     navlabel: true,
@@ -42,7 +79,7 @@ const MenuItems = [
   },
   {
     id: uniqueId(),
-    title: "กิจกรรมและข่าวสาร",
+    title: "กิจกรรมและข่าวสาร", 
     icon: IconPhoto,
     children: [
       {
@@ -155,6 +192,13 @@ const MenuItems = [
         icon: StyledIcon,
         title: "บริการเงินกู้",
         href: "/LoanAll",
+        roles: ["SuperAdmin"],
+      },
+      {
+        id: uniqueId(),
+        icon: StyledIcon,
+        title: "บัญชีธนาคารสหกรณ์",
+        href: "/Bank",
         roles: ["SuperAdmin"],
       },
     ],
@@ -322,6 +366,13 @@ const MenuItems = [
     title: "User Coop",
     icon: IconUserStar,
     href: "/UserManagement",
+    roles: ["SuperAdmin"],
+  },
+  {
+    id: uniqueId(),
+    title: "Home Co-op Status",
+    icon: IconProgressHelp,
+    href: "/HomeStatus",
     roles: ["SuperAdmin"],
   },
 ];

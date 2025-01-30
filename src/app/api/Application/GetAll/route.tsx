@@ -3,11 +3,11 @@ import pool from "../../../db/mysql";
 import { RowDataPacket, FieldPacket } from "mysql2";
 
 export const dynamic = 'force-dynamic';
-// Define the types for the query results
-interface SocietyRow extends RowDataPacket {
+
+interface ServiceRow extends RowDataPacket {
   Id: number;
   ImageNumber: number;
-  Image: Buffer;
+  ImagePath: string;
   ApplicationMainType: string;
   ApplicationType: string;
 }
@@ -16,12 +16,12 @@ export async function GET() {
   let db;
   try {
     db = await pool.getConnection();
-    const query = "SELECT Id, ImageNumber, Image, ApplicationMainType, ApplicationType FROM application ORDER BY Id ASC";
-    const [rows]: [SocietyRow[], FieldPacket[]] = await db.execute(query);
+    const query = "SELECT Id, ImageNumber, ImagePath, ApplicationMainType, ApplicationType FROM application ORDER BY Id ASC";
+    const [rows]: [ServiceRow[], FieldPacket[]] = await db.execute(query);
+
     // Process the rows to convert the Image field to base64 string
     const processedRows = rows.map((row) => ({
       ...row,
-      Image: row.Image ? Buffer.from(row.Image).toString('base64') : null,
     }));
 
     return NextResponse.json(processedRows, { status: 200 });
@@ -32,3 +32,4 @@ export async function GET() {
     if (db) db.release();
   }
 }
+

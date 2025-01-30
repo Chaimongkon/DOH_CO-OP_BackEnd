@@ -21,9 +21,7 @@ const OrganizationalCreate = () => {
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
-  const [titleType, setTitleType] = useState<TypeOption | null>({
-    data: "คณะกรรมการดำเนินการ", 
-  });
+  const [titleType, setTitleType] = useState<TypeOption | null>(null);
   const [titlePriority, setTitlePriority] = useState<PriorityOption | null>(
     null
   );
@@ -31,18 +29,7 @@ const OrganizationalCreate = () => {
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const hiddenFileInput = useRef<HTMLInputElement | null>(null);
-  
-  const Type: TypeOption[] = [
-    { data: "คณะกรรมการดำเนินการ" },
-    { data: "ผู้ตรวจสอบบัญชีและผู้ตรวจสอบกิจการ" },
-    { data: "ผู้จัดการใหญ่และรองผู้จัดการฯ" },
-    { data: "ฝ่ายสินเชื่อ" },
-    { data: "ฝ่ายการเงิน" },
-    { data: "ฝ่ายหารายได้และสมาชิกสัมพันธ์" },
-    { data: "ฝ่ายทะเบียนหุ้นและบัญชีเงินกู้" },
-    { data: "ฝ่ายบริหารทั่วไป" },
-    { data: "ฝ่ายบัญชี" },
-  ];
+
   const Priority: PriorityOption[] = [
     { data: "1" },
     { data: "2" },
@@ -90,53 +77,42 @@ const OrganizationalCreate = () => {
 
   const handleUpload = async () => {
     if (image) {
-      const reader = new FileReader();
-      reader.readAsDataURL(image);
-      reader.onloadend = async () => {
-        const base64String = reader.result?.toString().split(",")[1];
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("position", position);
+      formData.append("priority", titlePriority?.data || "");
+      formData.append("type", titleType?.data || "");
+      formData.append("image", image); // Add the file directly
 
-        if (base64String) {
-          const imageType = image.type;
-          const response = await fetch(`${API}/TreeOrganizational/Create`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              name: name,
-              position: position,
-              priority: titlePriority?.data,
-              type: titleType?.data,
-              image: `data:${imageType};base64,${base64String}`,
-            }),
-          });
+      const response = await fetch(`${API}/TreeOrganizational/Create`, {
+        method: "POST",
+        body: formData, // Send FormData with the file
+      });
 
-          if (response.ok) {
-            Swal.fire({
-              position: "top-end",
-              icon: "success",
-              title: "CREATE SUCCESSFULLY",
-              showConfirmButton: false,
-              timer: 1500,
-            }).then(() => {
-              router.push(`/BoardOrganizational`);
-            });
-            setImage(null);
-            setName("");
-            setPosition("");
-            setTitleType(null);
-            setTitlePriority(null);
-            setIsSelectedimg(false);
-            setPreview(null);
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Oops...",
-              text: "Failed to upload image.",
-            });
-          }
-        }
-      };
+      if (response.ok) {
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "CREATE SUCCESSFULLY",
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          router.back();
+        });
+        setImage(null);
+        setName("");
+        setPosition("");
+        setTitleType(null);
+        setTitlePriority(null);
+        setIsSelectedimg(false);
+        setPreview(null);
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Failed to upload image.",
+        });
+      }
     }
   };
 
@@ -153,7 +129,7 @@ const OrganizationalCreate = () => {
   }, [image]);
 
   return (
-    <DashboardCard title="Create Officer">
+    <DashboardCard title="Create TreeOrganizational">
       <form className="forms-sample" onSubmit={handleSubmit}>
         <Box component="section" sx={{ p: 2 }}>
           <div
@@ -230,7 +206,6 @@ const OrganizationalCreate = () => {
             size="small"
             onChange={(e) => setName(e.target.value)}
             value={name}
-            required
           />
         </Box>
         <Box component="section" sx={{ p: 2 }}>
@@ -242,7 +217,6 @@ const OrganizationalCreate = () => {
             size="small"
             onChange={(e) => setPosition(e.target.value)}
             value={position}
-            required
           />
         </Box>
         <Box component="section" sx={{ p: 2 }}>
@@ -255,7 +229,7 @@ const OrganizationalCreate = () => {
               readOnly: true,
             }}
             variant="outlined"
-            value={titleType?.data || ""}
+            value={"คณะกรรมการดำเนินการ"}
           />
         </Box>
         <Box component="section" sx={{ p: 2 }}>
@@ -271,7 +245,7 @@ const OrganizationalCreate = () => {
             }
             value={titlePriority}
             renderInput={(params) => (
-              <TextField {...params} label="ลำดับความสำคัญ" required />
+              <TextField {...params} label="ลำดับความสำคัญ" />
             )}
           />
         </Box>
@@ -288,7 +262,7 @@ const OrganizationalCreate = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => router.push(`/NotifyAll`)}
+              onClick={() => router.back()}
             >
               Cancel
             </Button>

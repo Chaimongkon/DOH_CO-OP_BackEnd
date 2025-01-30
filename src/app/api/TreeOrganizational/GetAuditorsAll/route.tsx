@@ -17,7 +17,7 @@ export async function GET() {
   let db;
   try {
     db = await pool.getConnection();
-    const query = "SELECT Id, Name, Position, Priority, Type, Image FROM treeorganizational WHERE Type = 'ผู้ตรวจสอบบัญชีและผู้ตรวจสอบกิจการ' ORDER BY Id ASC";
+    const query = "SELECT Id, Name, Position, Priority, Type, ImagePath FROM treeorganizational WHERE Type = 'ผู้ตรวจสอบบัญชีและผู้ตรวจสอบกิจการ' ORDER BY Id ASC";
     const [rows]: [SlideRow[], FieldPacket[]] = await db.execute(query);
 
     // Process the rows to convert the Image field to base64 string

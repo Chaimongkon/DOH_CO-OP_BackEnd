@@ -1,35 +1,66 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { v4 as uuidv4 } from "uuid";
+import path from "path";
+import fs from "fs/promises";
 import pool from "../../../db/mysql";
+import sharp from "sharp";
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
+  const formData = await request.formData();
+  const no = formData.get("no") as string;
+  const imageFile = formData.get("image") as File | null;
+  const urllink = formData.get("urllink") as string;
+
+  // Check for missing required fields
+  if (!no || !imageFile) {
+    return NextResponse.json(
+      { error: "Missing required fields" },
+      { status: 400 }
+    );
+  }
+
   try {
-    const data = await request.json();
-    const { no, image, urllink } = data;
+    // Validate file types for image and PDF
+    // Create directories if they don't exist
+    const uploadsImageDir = path.join(process.cwd(), "public/Uploads/Slides");
+    await fs.mkdir(uploadsImageDir, { recursive: true });
 
-    // Validate input data
-    if (typeof no !== 'number' || typeof image !== 'string' || typeof urllink !== 'string') {
-      return new Response(JSON.stringify({ error: "Invalid input data" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+    // Determine if the file should be converted to WebP
+    const fileExtension = imageFile.name.split(".").pop()?.toLowerCase();
+    const isPng = fileExtension === "png";
+
+    // Generate unique name for the file
+    const imageUUID = `${uuidv4()}.webp`; // Save as WebP
+    const imagePath = path.join(uploadsImageDir, imageUUID);
+
+    // Convert PNG to WebP using sharp, or save the file directly if not a PNG
+    const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
+
+    if (isPng) {
+      // Use sharp to convert PNG to WebP
+      const webpBuffer = await sharp(imageBuffer).webp().toBuffer();
+      await fs.writeFile(imagePath, webpBuffer);
+    } else {
+      // Save non-PNG images as-is (if needed, you can handle other formats similarly)
+      await fs.writeFile(imagePath, imageBuffer);
     }
 
-    // Extract the base64 string from the image data
-    const base64String = image.split(",")[1];
-    const imageBuffer = Buffer.from(base64String, "base64");
+    // Save file path in the database
+    const relativeFilePath = `/Uploads/Slides/${imageUUID}`;
 
-    const query = "INSERT INTO slides (No, Image, URLLink, CreateDate) VALUES (?, ?, ?, NOW())";
-    await pool.query(query, [no, imageBuffer, urllink]);
+    // Save file paths in the database
+    const query = `
+    INSERT INTO slides (No, ImagePath, URLLink, CreateDate) VALUES (?, ?, ?, NOW())
+    `;
+    await pool.query(query, [no, relativeFilePath, urllink]);
 
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    // Respond with success
+    return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("Error processing POST request:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

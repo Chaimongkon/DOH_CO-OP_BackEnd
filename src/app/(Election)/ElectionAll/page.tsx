@@ -29,9 +29,17 @@ import Link from "next/link";
 import DashboardCard from "@/app/components/shared/DashboardCard";
 import { useRouter } from "next/navigation";
 import Delete from "@mui/icons-material/Delete";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 
 interface Column {
-  id: "No" | "Member" | "IdCard" | "FullName" | "Department" | "FieldNumber" | "SequenceNumber";
+  id:
+    | "No"
+    | "Member"
+    | "IdCard"
+    | "FullName"
+    | "Department"
+    | "FieldNumber"
+    | "SequenceNumber";
   label: string;
   minWidth?: number;
   align?: "right" | "left" | "center";
@@ -65,8 +73,8 @@ export default function ElectionAll() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [rows, setRows] = useState<Data[]>([]);
   const [totalRows, setTotalRows] = useState(0);
-  const [search, setSearch] = useState(""); 
-  const [memberTypes, setMemberTypes] = useState<string[]>([]); 
+  const [search, setSearch] = useState("");
+  const [memberTypes, setMemberTypes] = useState<string[]>([]);
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
   const currentPage = useRef(0);
   const router = useRouter();
@@ -87,9 +95,7 @@ export default function ElectionAll() {
   // Handle checkbox changes for member types
   const handleMemberTypeChange = (type: string) => {
     setMemberTypes((prev) =>
-      prev.includes(type)
-        ? prev.filter((t) => t !== type)
-        : [...prev, type]
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
     );
   };
 
@@ -98,14 +104,14 @@ export default function ElectionAll() {
     let url = `${API}/Election/GetAll?page=${
       currentPage.current + 1
     }&per_page=${rowsPerPage}`;
-    
+
     if (search) {
       url += `&search=${search}`;
     }
 
     // Pass memberTypes to API if any are selected
     if (memberTypes.length > 0) {
-      url += `&memberTypes=${memberTypes.join(",")}`; 
+      url += `&memberTypes=${memberTypes.join(",")}`;
     }
 
     fetch(url, {
@@ -135,7 +141,7 @@ export default function ElectionAll() {
       });
 
       if (result.isConfirmed) {
-        const response = await axios.delete(`${API}/Election/Delete`); 
+        const response = await axios.delete(`${API}/Election/Delete`);
 
         if (response.status === 200) {
           Swal.fire(
@@ -189,7 +195,7 @@ export default function ElectionAll() {
               sx={{ ml: 1, flex: 1 }}
               placeholder="ค้นหา"
               value={search}
-              onChange={(e) => setSearch(e.target.value)} 
+              onChange={(e) => setSearch(e.target.value)}
             />
             <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
             <IconButton
@@ -221,7 +227,20 @@ export default function ElectionAll() {
               label="สามัญ ประเภท ข"
             />
           </FormGroup>
-
+          <FormGroup>
+            <Button
+              component="label"
+              role={undefined}
+              variant="contained"
+              size="small"
+              color="error"
+              tabIndex={-1}
+              startIcon={<Delete />}
+              onClick={handleDeleteAll}
+            >
+              DeleteAll รายชื่อสมาชิก
+            </Button>
+          </FormGroup>
           <Link href="/ElectionCreate" passHref>
             <Button
               component="label"
@@ -236,6 +255,7 @@ export default function ElectionAll() {
             </Button>
           </Link>
         </Paper>
+
         <Paper>
           <TableContainer>
             <Table stickyHeader aria-label="sticky table">
@@ -294,19 +314,54 @@ export default function ElectionAll() {
               flexDirection: isMobile ? "column" : "row",
             }}
           >
-            <Box></Box>
-            <Button
-              component="label"
-              role={undefined}
-              variant="contained"
-              size="small"
-              color="error"
-              tabIndex={-1}
-              startIcon={<Delete />}
-              onClick={handleDeleteAll}
-            >
-              DeleteAll รายชื่อสมาชิก
-            </Button>
+            <Box>
+              {" "}
+              <Link href="/GeneratorPdfDepartment">
+                <Button
+                  component="label"
+                  role={undefined}
+                  variant="contained"
+                  size="small"
+                  color="primary"
+                  tabIndex={-1}
+                  startIcon={<PictureAsPdfIcon />}
+                >
+                  รายชื่อเลือกตั้งรายสังกัด
+                </Button>
+              </Link>
+            </Box>
+            <Box>
+              {" "}
+              <Link href="/GeneratorPdfChannel">
+                <Button
+                  component="label"
+                  role={undefined}
+                  variant="contained"
+                  size="small"
+                  color="success"
+                  tabIndex={-1}
+                  startIcon={<PictureAsPdfIcon />}
+                >
+                  รายชื่อเลือกตั้งตามช่อง
+                </Button>
+              </Link>
+            </Box>
+            <Box>
+              {" "}
+              <Link href="/GeneratorPdfSignature">
+                <Button
+                  component="label"
+                  role={undefined}
+                  variant="contained"
+                  size="small"
+                  color="info"
+                  tabIndex={-1}
+                  startIcon={<PictureAsPdfIcon />}
+                >
+                  รายมือชื่อผู้เข้าร่าวมประชุมตามช่อง
+                </Button>
+              </Link>
+            </Box>
           </Paper>
         </Paper>
       </Container>

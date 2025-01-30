@@ -16,6 +16,9 @@ import {
   Box,
   Container,
   Tab,
+  TableFooter,
+  TablePagination,
+  CircularProgress,  // Material UI loading spinner
   useMediaQuery,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -50,39 +53,32 @@ interface Data {
   Title: string;
   TypeForm: string;
   TypeMember: string;
-  PdfFile: string;
+  FilePath: string;
 }
 
-const base64ToBlobUrl = (base64: string, type: string) => {
-  const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-  const byteArray = new Uint8Array(byteNumbers);
-  const blob = new Blob([byteArray], { type });
-  return URL.createObjectURL(blob);
-};
-
-const DepositsWithdrawFormAll = () => {
+const WelfareFormAll = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [rows, setRows] = useState<Data[]>([]);
+  const [loading, setLoading] = useState(true);  // Loading state
   const [open, setOpen] = useState(false);
-  const [pdfBase64, setPdfBase64] = useState<string | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [value, setValue] = useState("");
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
   const router = useRouter();
   const typeForm = "แบบฟอร์มเงินฝาก - ถอน";
 
-  // Sorting order for TypeMember
   const typeMemberOrder = [
     "สมาชิกสามัญประเภท ก",
     "สมาชิกสามัญประเภท ข",
     "สมาชิกสมทบ",
-    "สมาชิกประเภท ก ข สมทบ",
   ];
 
   const getPaginatedData = useCallback(async () => {
+    setLoading(true);  // Set loading to true before fetching data
     try {
       const res = await fetch(`${API}/FormDowsloads/GetAll`);
       const data = await res.json();
@@ -90,9 +86,10 @@ const DepositsWithdrawFormAll = () => {
         (row: Data) => row.TypeForm === typeForm
       );
 
-      // Sort rows by TypeMember
-      const sortedData = filteredData.sort((a: Data, b: Data) =>
-        typeMemberOrder.indexOf(a.TypeMember) - typeMemberOrder.indexOf(b.TypeMember)
+      const sortedData = filteredData.sort(
+        (a: Data, b: Data) =>
+          typeMemberOrder.indexOf(a.TypeMember) -
+          typeMemberOrder.indexOf(b.TypeMember)
       );
       setRows(sortedData);
 
@@ -101,6 +98,8 @@ const DepositsWithdrawFormAll = () => {
       }
     } catch (error) {
       console.error("Failed to fetch data:", error);
+    } finally {
+      setLoading(false);  // Set loading to false once data is fetched
     }
   }, [API]);
 
@@ -108,15 +107,25 @@ const DepositsWithdrawFormAll = () => {
     getPaginatedData();
   }, [getPaginatedData]);
 
-  const handleClickOpen = (base64: string) => {
-    const blobUrl = base64ToBlobUrl(base64, "application/pdf");
-    setPdfBase64(blobUrl);
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleClickOpen = (pdfPath: string) => {
+    setPdfUrl(`${URLFile}${pdfPath}`);
     setOpen(true);
   };
 
   const handleClose = () => {
     setOpen(false);
-    setPdfBase64(null);
+    setPdfUrl(null);
   };
 
   const handleDelete = async (id: number) => {
@@ -133,19 +142,30 @@ const DepositsWithdrawFormAll = () => {
       }
     } catch (error) {
       console.error("Failed to delete news:", error);
-      Swal.fire("Error!", "An error occurred while deleting the news.", "error");
+      Swal.fire(
+        "Error!",
+        "An error occurred while deleting the news.",
+        "error"
+      );
     }
   };
 
-  const [value, setValue] = useState("");
-
-  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
+    setPage(0);
   };
 
   const uniqueMemberType = useMemo(
     () => Array.from(new Set(rows.map((row) => row.TypeMember))),
     [rows]
+  );
+
+  const paginatedRows = useMemo(
+    () =>
+      rows
+        .filter((row) => row.TypeMember === value)
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [rows, value, page, rowsPerPage]
   );
 
   return (
@@ -154,7 +174,11 @@ const DepositsWithdrawFormAll = () => {
         <Paper>
           <Box display="flex" justifyContent="space-between" mb={2}>
             <Box></Box>
-            <Link href={`/FormDownloadsCreate?typeForm=${encodeURIComponent(typeForm)}`}>
+            <Link
+              href={`/FormDownloadsCreate?typeForm=${encodeURIComponent(
+                typeForm
+              )}`}
+            >
               <Button
                 variant="contained"
                 size="small"
@@ -165,103 +189,144 @@ const DepositsWithdrawFormAll = () => {
               </Button>
             </Link>
           </Box>
-          <TabContext value={value}>
-            <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-              <TabList onChange={handleChange} aria-label="lab API tabs example">
-                {uniqueMemberType.map((TypeMember) => (
-                  <Tab label={TypeMember} value={TypeMember} key={TypeMember} />
-                ))}
-              </TabList>
+          {loading ? (
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              minHeight="400px"
+            >
+              <CircularProgress />
             </Box>
-            {uniqueMemberType.map((TypeMember, index) => (
-              <TabPanel key={index} value={TypeMember}>
-                <TableContainer>
-                  <Table stickyHeader aria-label="sticky table">
-                    <TableHead>
-                      <TableRow>
-                        {columns.map((column) => (
-                          <TableCell
-                            key={column.id}
-                            align={column.align}
-                            style={{ top: 5, minWidth: column.minWidth }}
+          ) : (
+            <TabContext value={value}>
+              <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+                <TabList
+                  onChange={handleTabChange}
+                  aria-label="tabs for form downloads"
+                >
+                  {uniqueMemberType.map((TypeMember) => (
+                    <Tab label={TypeMember} value={TypeMember} key={TypeMember} />
+                  ))}
+                </TabList>
+              </Box>
+              {uniqueMemberType.map((TypeMember, index) => (
+                <TabPanel key={index} value={TypeMember}>
+                  <TableContainer>
+                    <Table stickyHeader aria-label="sticky table">
+                      <TableHead>
+                        <TableRow>
+                          {columns.map((column) => (
+                            <TableCell
+                              key={column.id}
+                              align={column.align}
+                              style={{ top: 5, minWidth: column.minWidth }}
+                            >
+                              {column.label}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {paginatedRows.map((row) => (
+                          <TableRow
+                            hover
+                            role="checkbox"
+                            tabIndex={-1}
+                            key={row.Id}
                           >
-                            {column.label}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {rows
-                        .filter((row) => row.TypeMember === TypeMember)
-                        .map((row) => (
-                          <TableRow hover role="checkbox" tabIndex={-1} key={row.Id}>
                             {columns.map((column) => {
-                              const cellKey = `${row.Id}-${column.id}`;
-                              if (column.id === "Actions") {
-                                return (
-                                  <TableCell key={column.id} align={column.align}>
+                              const value = row[column.id as keyof Data];
+                              return (
+                                <TableCell key={column.id} align={column.align}>
+                                  {column.id === "Image" ? (
+                                    <img
+                                      src={"/images/backgrounds/pdffile.png"}
+                                      alt={row.TypeMember}
+                                      style={{
+                                        width: "100px",
+                                        filter:
+                                          "drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.5))",
+                                      }}
+                                    />
+                                  ) : column.id === "PdfFile" ? (
                                     <Button
-                                      component="label"
                                       variant="contained"
                                       size="small"
-                                      color="warning"
-                                      startIcon={<EditIcon />}
-                                      onClick={() => router.push(`/FormDownloadsEdit/${row.Id}`)}
+                                      onClick={() =>
+                                        handleClickOpen(row.FilePath)
+                                      }
                                     >
-                                      Edit
+                                      View PDF
                                     </Button>
-                                    <Button
-                                      component="label"
-                                      variant="contained"
-                                      size="small"
-                                      color="error"
-                                      startIcon={<DeleteIcon />}
-                                      onClick={() => handleDelete(row.Id)}
-                                      sx={{ ml: 1 }}
-                                    >
-                                      Delete
-                                    </Button>
-                                  </TableCell>
-                                );
-                              } else {
-                                const value = row[column.id as keyof Data];
-                                return (
-                                  <TableCell key={column.id} align={column.align}>
-                                    {column.id === "Image" ? (
-                                      <img
-                                        src={"/images/backgrounds/pdffile.png"}
-                                        alt={row.TypeMember}
-                                        style={{ width: "100px" }}
-                                      />
-                                    ) : column.id === "PdfFile" ? (
+                                  ) : column.id === "Actions" ? (
+                                    <Box display="flex" justifyContent="center">
                                       <Button
                                         variant="contained"
                                         size="small"
-                                        onClick={() => handleClickOpen(value as string)}
+                                        color="warning"
+                                        startIcon={<EditIcon />}
+                                        onClick={() =>
+                                          router.push(
+                                            `/FormDownloadsEdit/${row.Id}`
+                                          )
+                                        }
                                       >
-                                        View PDF
+                                        Edit
                                       </Button>
-                                    ) : (
-                                      value
-                                    )}
-                                  </TableCell>
-                                );
-                              }
+                                      <Button
+                                        variant="contained"
+                                        size="small"
+                                        color="error"
+                                        startIcon={<DeleteIcon />}
+                                        onClick={() => handleDelete(row.Id)}
+                                        sx={{ ml: 1 }}
+                                      >
+                                        Delete
+                                      </Button>
+                                    </Box>
+                                  ) : (
+                                    value
+                                  )}
+                                </TableCell>
+                              );
                             })}
                           </TableRow>
                         ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </TabPanel>
-            ))}
-          </TabContext>
+                      </TableBody>
+                      <TableFooter>
+                        <TableRow>
+                          <TablePagination
+                            rowsPerPageOptions={[5, 10, 25]}
+                            count={
+                              rows.filter((row) => row.TypeMember === TypeMember)
+                                .length
+                            }
+                            rowsPerPage={rowsPerPage}
+                            page={page}
+                            onPageChange={handleChangePage}
+                            onRowsPerPageChange={handleChangeRowsPerPage}
+                            labelRowsPerPage="Rows per page"
+                          />
+                        </TableRow>
+                      </TableFooter>
+                    </Table>
+                  </TableContainer>
+                </TabPanel>
+              ))}
+            </TabContext>
+          )}
 
           <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
             <DialogTitle>PDF Preview</DialogTitle>
             <DialogContent>
-              {pdfBase64 && (
-                <iframe src={pdfBase64} width="100%" height="600px" title="PDF Preview" />
+              {pdfUrl && (
+                <iframe
+                  src={pdfUrl}
+                  width="100%"
+                  height="600px"
+                  title="PDF Preview"
+                />
               )}
             </DialogContent>
             <DialogActions>
@@ -276,5 +341,4 @@ const DepositsWithdrawFormAll = () => {
   );
 };
 
-export default DepositsWithdrawFormAll;
-
+export default WelfareFormAll;

@@ -10,19 +10,19 @@ interface ServiceRow extends RowDataPacket {
   MainType: string;
   Subcategories: string;
   Image: Buffer;
+  URLLink: string;
 }
 
 export async function GET() {
   let db;
   try {
     db = await pool.getConnection();
-    const query = "SELECT Id, Title, MainType, Subcategories, Image  FROM services ORDER BY Id ASC";
+    const query = "SELECT Id, Title, MainType, Subcategories, ImagePath, URLLink  FROM services ORDER BY Id ASC";
     const [rows]: [ServiceRow[], FieldPacket[]] = await db.execute(query);
 
     // Process the rows to convert the Image field to base64 string
     const processedRows = rows.map((row) => ({
       ...row,
-      Image: row.Image ? Buffer.from(row.Image).toString('base64') : null,
     }));
 
     return NextResponse.json(processedRows, { status: 200 });
@@ -33,3 +33,4 @@ export async function GET() {
     if (db) db.release();
   }
 }
+

@@ -4,7 +4,7 @@ import PageContainer from "@/app/(Dashboard)/components/container/PageContainer"
 import DashboardCard from "@/app/(Dashboard)/components/shared/DashboardCard";
 import {
   EditOutlined,
-  VideoCameraOutlined,
+  FilePdfOutlined,
   DeleteOutlined,
   PlusCircleOutlined,
   CloseCircleOutlined,
@@ -53,8 +53,8 @@ type SizeType = "large" | "middle" | "small";
 interface Business {
   id: number;
   title: string;
-  image: string;
-  fileUrl: string;  // URL to the PDF file
+  imagePath: string;
+  filePath: string; // URL to the PDF file
 }
 
 const getRandomAvatar = () => {
@@ -73,6 +73,7 @@ const BusinessReportPage = () => {
   const rootPrefixCls = getPrefixCls();
   const [size, setSize] = useState<SizeType>("middle");
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
 
   const fetchReports = useCallback(async () => {
     try {
@@ -81,12 +82,11 @@ const BusinessReportPage = () => {
         throw new Error("Network response was not ok");
       }
       const { data } = await response.json();
-
       const processedData = data.map((report: any) => ({
         id: report.Id,
         title: report.Title,
-        image: `data:image/webp;base64,${report.Image}`,  // Assuming the image is still base64
-        fileUrl: `${API}/BusinessReport/GetAll/File/${report.Id}`,  // URL to fetch the PDF
+        imagePath: `${URLFile}${report.ImagePath}`,
+        filePath: `${URLFile}${report.FilePath}`,
       }));
 
       setBusiness(processedData);
@@ -139,11 +139,7 @@ const BusinessReportPage = () => {
       }
 
       &:hover {
-        background: linear-gradient(
-          135deg,
-          #1a2980,
-          #26d0ce
-        );
+        background: linear-gradient(135deg, #1a2980, #26d0ce);
       }
     }
   `;
@@ -221,10 +217,10 @@ const BusinessReportPage = () => {
                       <img
                         width="100%"
                         height="400"
-                        src={report.image}
+                        src={report.imagePath}
                         alt="Report Thumbnail"
                         style={{ objectFit: "cover" }}
-                        onClick={() => showModal(report.fileUrl)}
+                        onClick={() => showModal(report.filePath)}
                       />
                       <div
                         style={{
@@ -240,13 +236,15 @@ const BusinessReportPage = () => {
                     </div>
                   }
                   actions={[
-                    <VideoCameraOutlined
+                    <FilePdfOutlined 
                       key="view"
-                      onClick={() => showModal(report.fileUrl)}
+                      onClick={() => showModal(report.filePath)}
                     />,
                     <EditOutlined
                       key="edit"
-                      onClick={() => router.push(`/BusinessReportEdit/${report.id}`)}
+                      onClick={() =>
+                        router.push(`/BusinessReportEdit/${report.id}`)
+                      }
                     />,
                     <DeleteOutlined
                       key="delete"

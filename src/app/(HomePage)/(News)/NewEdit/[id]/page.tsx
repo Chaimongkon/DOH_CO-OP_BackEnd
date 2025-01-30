@@ -30,7 +30,9 @@ const NewEdit = () => {
     pdfUrl: "",
   });
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
 
+  // Removed formData dependency to prevent re-fetching
   const fetchImages = useCallback(async () => {
     try {
       const response = await fetch(`${API}/News/GetById/${id}`);
@@ -38,30 +40,30 @@ const NewEdit = () => {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
-
+  
       const processedData = {
         title: data[0].Title || "",
         details: data[0].Details || "",
-        imageUrl: data[0].Image ? `data:;base64,${data[0].Image}` : "",
-        pdfUrl: data[0].File
-          ? `data:application/pdf;base64,${data[0].File}`
+        imageUrl: data[0].ImagePath
+          ? `${URLFile}${data[0].ImagePath}` // Use the file path instead of base64
           : "",
+        pdfUrl: data[0].PdfPath ? `${URLFile}${data[0].PdfPath}` : "", // Use the file path instead of base64
       };
-
-      setFormData({
-        ...formData,
+  
+      setFormData((prevData) => ({
+        ...prevData,
         ...processedData,
-      });
+      }));
     } catch (error) {
       console.error("Failed to fetch images:", error);
     }
-  }, [API, id]);
+  }, [API, id, URLFile]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
+    setFormData((prevData) => ({
+      ...prevData,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,11 +82,11 @@ const NewEdit = () => {
             html: `กรุณาเลือกรูปภาพที่มีขนาด <font style="color:red"><b>512px X 512px</b></font> <br />หรือ รูปที่เล็กกว่า`,
           });
         } else {
-          setFormData({
-            ...formData,
+          setFormData((prevData) => ({
+            ...prevData,
             image: imageFile,
             imageUrl: imageUrl,
-          });
+          }));
         }
       };
     }
@@ -94,67 +96,36 @@ const NewEdit = () => {
     const PDFFile = e.target.files?.[0];
     if (PDFFile) {
       const PDFUrl = URL.createObjectURL(PDFFile);
-      setFormData({
-        ...formData,
+      setFormData((prevData) => ({
+        ...prevData,
         pdf: PDFFile,
         pdfUrl: PDFUrl,
-      });
+      }));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const { image, pdf, title, details } = formData;
-    let base64Stringimg = null;
-    let base64Stringpdf = null;
-
-    const handleFileRead = (file: File, fileType: string) => {
-      return new Promise<string | null>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onloadend = () => {
-          const base64String = reader.result?.toString().split(",")[1];
-          resolve(
-            base64String ? `data:${fileType};base64,${base64String}` : null
-          );
-        };
-        reader.onerror = reject;
-      });
-    };
-
+  
+    const formDataToSend = new FormData();
+    formDataToSend.append("title", title);
+    formDataToSend.append("details", details);
+    
+    // Append files only if they exist
+    if (image) {
+      formDataToSend.append("image", image);
+    }
+    if (pdf) {
+      formDataToSend.append("pdf", pdf);
+    }
+  
     try {
-      if (image) {
-        base64Stringimg = await handleFileRead(image, "image/png"); // assuming image type is PNG, change if necessary
-      }
-      if (pdf) {
-        base64Stringpdf = await handleFileRead(pdf, "application/pdf");
-      }
-
-      const payload: {
-        title: string;
-        details: string;
-        image?: string;
-        pdf?: string;
-      } = {
-        title: title,
-        details: details,
-      };
-
-      if (base64Stringimg) {
-        payload.image = base64Stringimg;
-      }
-      if (base64Stringpdf) {
-        payload.pdf = base64Stringpdf;
-      }
-
       const response = await fetch(`${API}/News/Edit/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+        body: formDataToSend, // Send FormData directly
       });
-
+  
       if (response.ok) {
         Swal.fire({
           position: "top-end",
@@ -202,7 +173,7 @@ const NewEdit = () => {
 
   useEffect(() => {
     fetchImages();
-  }, [fetchImages]);
+  }, [fetchImages]); // Ensure that fetchImages is only called once
 
   return (
     <DashboardCard title="Edit Slides">

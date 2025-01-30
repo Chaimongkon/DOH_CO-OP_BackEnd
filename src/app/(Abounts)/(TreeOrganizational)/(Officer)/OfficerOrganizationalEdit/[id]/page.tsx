@@ -30,7 +30,7 @@ const OrganizationalEdit: React.FC = () => {
   const router = useRouter();
   const { id } = useParams();
   const API = process.env.NEXT_PUBLIC_API_BASE_URL as string;
-
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
   const [formData, setFormData] = useState<FormData>({
     name: "",
     position: "",
@@ -39,7 +39,6 @@ const OrganizationalEdit: React.FC = () => {
     image: null,
     imageUrl: "",
   });
-
   const [titleType, setTitleType] = useState<TypeOption | null>(null);
   const [titlePriority, setTitlePriority] = useState<PriorityOption | null>(
     null
@@ -50,11 +49,12 @@ const OrganizationalEdit: React.FC = () => {
     { data: "ผู้ตรวจสอบบัญชีและผู้ตรวจสอบกิจการ" },
     { data: "ผู้จัดการใหญ่และรองผู้จัดการฯ" },
     { data: "ฝ่ายสินเชื่อ" },
-    { data: "ฝ่ายการเงิน" },
-    { data: "ฝ่ายหารายได้และสมาชิกสัมพันธ์" },
-    { data: "ฝ่ายทะเบียนหุ้นและบัญชีเงินกู้" },
+    { data: "ฝ่ายการเงินและการลงทุน" },
+    { data: "ฝ่ายสมาชิกสัมพันธ์และสวัสดิการ" },
+    { data: "ฝ่ายทะเบียนหุ้นและติดตามหนี้สิน" },
     { data: "ฝ่ายบริหารทั่วไป" },
     { data: "ฝ่ายบัญชี" },
+    { data: "ฝ่ายสารสนเทศ" },
   ];
 
   const PriorityOptions: PriorityOption[] = [
@@ -70,30 +70,29 @@ const OrganizationalEdit: React.FC = () => {
       const response = await fetch(
         `${API}/TreeOrganizational/GetBoardById/${id}`
       );
-
       if (!response.ok) {
-        throw new Error("Failed to fetch data");
+        throw new Error("Network response was not ok");
       }
-
       const data = await response.json();
 
-      const processedData = data.map((slide: any) => ({
-        name: slide.Name,
-        position: slide.Position,
-        priority: slide.Priority,
-        type: slide.Type,
-        image: `data:;base64,${slide.Image}`,
+      const processedData = data.map((officer: any) => ({
+        name: officer.Name,
+        position: officer.Position,
+        priority: officer.Priority,
+        type: officer.Type,
+        image: data[0].ImagePath
+          ? `${URLFile}${data[0].ImagePath}` // Use the file path instead of base64
+          : "",
       }));
-
       if (processedData.length > 0) {
-        const { name, position, priority, type, image } = processedData[0];
+        const officer = data[0];
         setFormData({
-          name,
-          position,
-          priority,
-          type,
-          image: null,
-          imageUrl: image,
+          name: officer.Name,
+          position: officer.Position,
+          priority: officer.Priority,
+          type: officer.Type,
+          image: null, // Set null here if the file doesn't change
+          imageUrl: officer.ImagePath ? `${URLFile}${officer.ImagePath}` : "",
         });
       }
     } catch (error) {
@@ -105,9 +104,11 @@ const OrganizationalEdit: React.FC = () => {
     fetchImages();
   }, [fetchImages]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
+  const handleInputChange = (e: any) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,70 +127,60 @@ const OrganizationalEdit: React.FC = () => {
             html: `กรุณาเลือกรูปภาพที่มีขนาด <font style="color:red"><b>300px X 300px</b></font> <br />หรือ รูปที่เล็กกว่า`,
           });
         } else {
-          setFormData((prevData) => ({
-            ...prevData,
+          setFormData({
+            ...formData,
             image: imageFile,
-            imageUrl,
-          }));
+            imageUrl: imageUrl,
+          });
         }
       };
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const { name, position, priority, type, image } = formData;
 
-    const { name, position, priority, type, image, imageUrl } = formData;
+    const formDataToSend = new FormData();
+    formDataToSend.append("name", name);
+    formDataToSend.append("position", position);
+    formDataToSend.append("priority", priority);
+    formDataToSend.append("type", type);
 
-    let base64Image = imageUrl;
-
-    if (image && image instanceof File) {
-      const reader = new FileReader();
-      reader.readAsDataURL(image);
-      reader.onloadend = async () => {
-        const base64String = reader.result?.toString().split(",")[1];
-        if (base64String) {
-          base64Image = `data:;base64,${base64String}`;
-          await submitForm(base64Image);
-        }
-      };
-    } else {
-      await submitForm(base64Image);
+    // Append files only if they exist
+    if (image) {
+      formDataToSend.append("image", image);
     }
-  };
 
-  const submitForm = async (base64Image: string | null) => {
-    const { name, position, priority, type } = formData;
-
-    const response = await fetch(`${API}/TreeOrganizational/Edit/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name,
-        position,
-        priority,
-        type,
-        image: base64Image,
-      }),
-    });
-
-    if (response.ok) {
-      Swal.fire({
-        position: "top-end",
-        icon: "success",
-        title: "UPDATE SUCCESSFULLY",
-        showConfirmButton: false,
-        timer: 1500,
-      }).then(() => {
-        router.push(`/BoardOrganizational`);
+    try {
+      const response = await fetch(`${API}/TreeOrganizational/Edit/${id}`, {
+        method: "PUT",
+        body: formDataToSend, // Send FormData directly
       });
-    } else {
+
+      if (response.ok) {
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "UPDATE SUCCESSFULLY",
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          router.back();
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Failed to upload image.",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to submit form:", error);
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: "Failed to upload image.",
+        text: "Failed to submit form. Check the console for more details.",
       });
     }
   };
@@ -260,7 +251,7 @@ const OrganizationalEdit: React.FC = () => {
         <Box sx={{ p: 2 }}>
           <TextField
             fullWidth
-            label="ลำดับการแสดง"
+            label="ชื่อ - สกุล"
             variant="outlined"
             size="small"
             name="name"
@@ -272,7 +263,7 @@ const OrganizationalEdit: React.FC = () => {
         <Box sx={{ p: 2 }}>
           <TextField
             fullWidth
-            label="Link URL"
+            label="ตำแหน่ง"
             variant="outlined"
             size="small"
             name="position"
@@ -343,7 +334,7 @@ const OrganizationalEdit: React.FC = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => router.push(`/BoardOrganizational`)}
+              onClick={() => router.back()}
             >
               Cancel
             </Button>

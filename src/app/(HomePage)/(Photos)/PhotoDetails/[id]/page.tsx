@@ -30,6 +30,7 @@ const PhotoDetailsPage = ({ params }: { params: { id: string } }) => {
     const fetchImages = async () => {
       try {
         const response = await axios.get(`${API}/Photos/GetAllById/${id}`);
+        console.log(response.data)
         setImages(response.data.images);
         setTitle(response.data.title);
       } catch (error) {

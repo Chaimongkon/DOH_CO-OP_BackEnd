@@ -13,7 +13,7 @@ import { title } from "process";
 interface FormData {
   title: string;
   typeForm: string;
-  typeMember:string;
+  typeMember: string;
   pdf: File | null;
   pdfUrl: string;
 }
@@ -24,6 +24,7 @@ const FormDownloadsEdit = () => {
   const router = useRouter();
   const { id } = useParams();
   const [titleMember, setTitleMember] = useState<MemberOption | null>(null);
+  const [typeForm, sertTypeForm] = useState("");
   const [formData, setFormData] = useState<FormData>({
     title: "",
     typeForm: "",
@@ -31,8 +32,8 @@ const FormDownloadsEdit = () => {
     pdf: null,
     pdfUrl: "",
   });
-  const [typeForm, sertTypeForm] = useState("");
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
 
   const Member: MemberOption[] = [
     { data: "สมาชิกสามัญประเภท ก" },
@@ -53,9 +54,7 @@ const FormDownloadsEdit = () => {
         title: data[0].Title || "",
         typeForm: data[0].TypeForm || "",
         typeMember: data[0].TypeMember || "",
-        pdfUrl: data[0].PdfFile
-          ? `data:application/pdf;base64,${data[0].PdfFile}`
-          : "",
+        pdfUrl: data[0].FilePath ? `${URLFile}${data[0].FilePath}` : "", // Use the file path instead of base64
       };
 
       setFormData({
@@ -65,7 +64,7 @@ const FormDownloadsEdit = () => {
     } catch (error) {
       console.error("Failed to fetch images:", error);
     }
-  }, [API, id]);
+  }, [API, id, URLFile]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -73,7 +72,6 @@ const FormDownloadsEdit = () => {
       [e.target.name]: e.target.value,
     });
   };
-
 
   const handlePDFChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const PDFFile = e.target.files?.[0];
@@ -90,49 +88,21 @@ const FormDownloadsEdit = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const { title, typeForm, typeMember, pdf } = formData;
-    let base64Stringpdf = null;
 
-    const handleFileRead = (file: File, fileType: string) => {
-      return new Promise<string | null>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onloadend = () => {
-          const base64String = reader.result?.toString().split(",")[1];
-          resolve(
-            base64String ? `data:${fileType};base64,${base64String}` : null
-          );
-        };
-        reader.onerror = reject;
-      });
-    };
+    const formDataToSend = new FormData();
+    formDataToSend.append("title", title);
+    formDataToSend.append("typeForm", typeForm);
+    formDataToSend.append("typeMember", typeMember);
+
+    // Append files only if they exist
+    if (pdf) {
+      formDataToSend.append("pdf", pdf);
+    }
 
     try {
-      if (pdf) {
-        base64Stringpdf = await handleFileRead(pdf, "application/pdf");
-      }
-
-      const payload: {
-        title: string;
-        typeForm: string;
-        typeMember: string;
-        pdf?: string;
-      } = {
-        title: title,
-        typeForm: typeForm,
-        typeMember: typeMember,
-      };
-
-
-      if (base64Stringpdf) {
-        payload.pdf = base64Stringpdf;
-      }
-
       const response = await fetch(`${API}/FormDowsloads/Edit/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+        body: formDataToSend, // Send FormData directly
       });
 
       if (response.ok) {
@@ -143,7 +113,7 @@ const FormDownloadsEdit = () => {
           showConfirmButton: false,
           timer: 1500,
         }).then(() => {
-          router.push(`/WelfareFormAll`);
+          router.back();
         });
       } else {
         Swal.fire({
@@ -159,15 +129,6 @@ const FormDownloadsEdit = () => {
         title: "Oops...",
         text: "Failed to submit form. Check the console for more details.",
       });
-    }
-  };
-
-  const triggerFileInputClick = () => {
-    const fileInput = document.getElementById(
-      "imageUpload"
-    ) as HTMLInputElement | null;
-    if (fileInput) {
-      fileInput.click();
     }
   };
 

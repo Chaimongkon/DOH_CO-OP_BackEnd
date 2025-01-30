@@ -20,6 +20,7 @@ const NotifyEdit = () => {
   const router = useRouter();
   const { id } = useParams();
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
   const [formData, setFormData] = useState<FormData>({
     url: "",
     image: null,
@@ -32,11 +33,13 @@ const NotifyEdit = () => {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
-
+console.log(data)
       const processedData = data.map((slide: any) => ({
         id: slide.Id,
         no: slide.No,
-        image: `data:;base64,${slide.Image}`,
+        image: data[0].ImagePath
+        ? `${URLFile}${data[0].ImagePath}` // Use the file path instead of base64
+        : "",
         url: slide.URLLink,
       }));
 
@@ -86,47 +89,48 @@ const NotifyEdit = () => {
   };
 
   const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    const { image, url } = formData;
-    if (image) {
-      const reader = new FileReader();
-      reader.readAsDataURL(image);
-      reader.onloadend = async () => {
-        const base64String = reader.result?.toString().split(",")[1];
-  
-        if (base64String) {
-          const response = await fetch(`${API}/Notifications/Edit/${id}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              image: `data:;base64,${base64String}`,
-              urllink: url,
-            }),
-          });
-  
-          if (response.ok) {
-            Swal.fire({
-              position: "top-end",
-              icon: "success",
-              title: "UPDATE SUCCESSFULLY",
-              showConfirmButton: false,
-              timer: 1500,
-            }).then(() => {
-              router.push(`/NotifyAll`);
+          e.preventDefault();
+          const { image, url } = formData;
+      
+          const formDataToSend = new FormData();
+          formDataToSend.append("url", url);
+      
+          // Append files only if they exist
+          if (image) {
+            formDataToSend.append("image", image);
+          }
+      
+          try {
+            const response = await fetch(`${API}/Notifications/Edit/${id}`, {
+              method: "PUT",
+              body: formDataToSend, // Send FormData directly
             });
-          } else {
+            if (response.ok) {
+              Swal.fire({
+                position: "top-end",
+                icon: "success",
+                title: "UPDATE SUCCESSFULLY",
+                showConfirmButton: false,
+                timer: 1500,
+              }).then(() => {
+                router.push(`/NotifyAll`);
+              });
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: "Failed to upload image.",
+              });
+            }
+          } catch (error) {
+            console.error("Failed to submit form:", error);
             Swal.fire({
               icon: "error",
               title: "Oops...",
-              text: "Failed to upload image.",
+              text: "Failed to submit form. Check the console for more details.",
             });
           }
-        }
-      };
-    }
-  };
+        };
   
   const triggerFileInputClick = () => {
     const fileInput = document.getElementById(

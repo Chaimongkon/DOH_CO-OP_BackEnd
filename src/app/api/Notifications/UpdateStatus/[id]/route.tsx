@@ -14,13 +14,25 @@ export async function PUT(
 
   try {
     const [result]: any = await pool.query(
-      "UPDATE notification SET `IsActive` =? WHERE `Id` =?",
+      "UPDATE notification SET `IsActive` = ? WHERE `Id` = ?",
       [status, id]
     );
 
-    return NextResponse.json({
-      message: "Update Status successful",
-    });
+    if (result.affectedRows === 0) {
+      return NextResponse.json(
+        {
+          message: "No record updated. Check if the ID exists.",
+        },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        message: "OK",
+      },
+      { status: 200 }
+    );
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";

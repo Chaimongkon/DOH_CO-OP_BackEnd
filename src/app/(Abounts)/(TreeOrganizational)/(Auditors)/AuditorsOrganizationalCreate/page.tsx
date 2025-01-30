@@ -248,7 +248,7 @@ const OrganizationalCreate = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => router.push(`/NotifyAll`)}
+              onClick={() => router.back()}
             >
               Cancel
             </Button>

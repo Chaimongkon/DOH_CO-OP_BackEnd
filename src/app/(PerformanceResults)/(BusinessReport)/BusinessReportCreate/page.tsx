@@ -1,5 +1,12 @@
 "use client";
-import { Box, Button, Stack, TextField, LinearProgress, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Stack,
+  TextField,
+  LinearProgress,
+  Typography,
+} from "@mui/material";
 import { useEffect, useRef, useState, useCallback } from "react";
 import Swal from "sweetalert2";
 import DashboardCard from "@/app/components/shared/DashboardCard";
@@ -48,7 +55,10 @@ const BusinessReportCreate = () => {
   };
 
   const validateImageDimensions = (img: HTMLImageElement) => {
-    if (img.width > MAX_IMAGE_DIMENSIONS.width || img.height > MAX_IMAGE_DIMENSIONS.height) {
+    if (
+      img.width > MAX_IMAGE_DIMENSIONS.width ||
+      img.height > MAX_IMAGE_DIMENSIONS.height
+    ) {
       Swal.fire({
         icon: "error",
         title: "Image dimensions too large",
@@ -59,83 +69,94 @@ const BusinessReportCreate = () => {
     return true;
   };
 
-  const handleImage = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      const selectedImage = event.target.files[0];
+  const handleImage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (event.target.files && event.target.files[0]) {
+        const selectedImage = event.target.files[0];
 
-      if (!validateFileSize(selectedImage, IMAGE_SIZE_LIMIT)) {
-        setImage(null);
-        setPreview(null);
-        return;
-      }
-
-      const img = new Image();
-      img.src = URL.createObjectURL(selectedImage);
-
-      img.onload = () => {
-        if (!validateImageDimensions(img)) {
+        if (!validateFileSize(selectedImage, IMAGE_SIZE_LIMIT)) {
           setImage(null);
           setPreview(null);
-        } else {
-          setImage(selectedImage);
-          setFileSize(selectedImage.size);
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setPreview(reader.result as string);
-          };
-          reader.readAsDataURL(selectedImage);
+          return;
         }
-      };
-    }
-  }, []);
 
-  const handlePDF = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      const selectedPDF = event.target.files[0];
+        const img = new Image();
+        img.src = URL.createObjectURL(selectedImage);
 
-      if (!validateFileSize(selectedPDF, PDF_SIZE_LIMIT)) {
-        setPDF(null);
-        return;
+        img.onload = () => {
+          if (!validateImageDimensions(img)) {
+            setImage(null);
+            setPreview(null);
+          } else {
+            setImage(selectedImage);
+            setFileSize(selectedImage.size);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              setPreview(reader.result as string);
+            };
+            reader.readAsDataURL(selectedImage);
+          }
+        };
       }
+    },
+    []
+  );
 
-      const readerpdf = new FileReader();
-      readerpdf.readAsDataURL(selectedPDF);
-      readerpdf.onloadend = () => {
-        const base64String = readerpdf.result?.toString().split(",")[1];
-        if (base64String) {
-          const blob = base64ToBlob(base64String, "application/pdf");
-          const blobUrl = URL.createObjectURL(blob);
-          setPdfPreviewUrl(blobUrl);
-          setPDF(selectedPDF);
-          setFileSize(selectedPDF.size);
+  const handlePDF = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (event.target.files && event.target.files[0]) {
+        const selectedPDF = event.target.files[0];
 
-          return () => URL.revokeObjectURL(blobUrl);
+        if (!validateFileSize(selectedPDF, PDF_SIZE_LIMIT)) {
+          setPDF(null);
+          return;
         }
-      };
-    }
-  }, []);
 
-  const handleSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    await handleUpload();
-  }, [image, pdf, title]);
+        const readerpdf = new FileReader();
+        readerpdf.readAsDataURL(selectedPDF);
+        readerpdf.onloadend = () => {
+          const base64String = readerpdf.result?.toString().split(",")[1];
+          if (base64String) {
+            const blob = base64ToBlob(base64String, "application/pdf");
+            const blobUrl = URL.createObjectURL(blob);
+            setPdfPreviewUrl(blobUrl);
+            setPDF(selectedPDF);
+            setFileSize(selectedPDF.size);
+
+            return () => URL.revokeObjectURL(blobUrl);
+          }
+        };
+      }
+    },
+    []
+  );
+
+  const handleSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      await handleUpload();
+    },
+    [image, pdf, title]
+  );
 
   const handleUpload = useCallback(() => {
     if (image && pdf) {
       const formData = new FormData();
       formData.append("title", title);
-      formData.append("image", image);
+      formData.append("image", image); // Direct file, no base64 conversion needed
       formData.append("pdf", pdf);
-  
+
       const xhr = new XMLHttpRequest();
-  
+
       xhr.upload.onprogress = (event: ProgressEvent) => {
         if (event.lengthComputable) {
-          const percentCompleted = Math.round((event.loaded * 100) / event.total);
+          const percentCompleted = Math.round(
+            (event.loaded * 100) / event.total
+          );
           setUploadProgress(percentCompleted);
         }
       };
-  
+
       xhr.onload = () => {
         if (xhr.status === 200) {
           Swal.fire({
@@ -157,7 +178,7 @@ const BusinessReportCreate = () => {
           setUploadProgress(0);
         }
       };
-  
+
       xhr.onerror = () => {
         Swal.fire({
           icon: "error",
@@ -166,7 +187,7 @@ const BusinessReportCreate = () => {
         });
         setUploadProgress(0);
       };
-  
+
       xhr.open("POST", `${API}/BusinessReport/Create`, true);
       xhr.send(formData);
     } else {
@@ -177,7 +198,6 @@ const BusinessReportCreate = () => {
       });
     }
   }, [image, pdf, title, API, router]);
-  
 
   const resetForm = useCallback(() => {
     setImage(null);
@@ -188,7 +208,7 @@ const BusinessReportCreate = () => {
     setUploadProgress(0);
   }, []);
 
-  const base64ToBlob = (base64: string, contentType: string = '') => {
+  const base64ToBlob = (base64: string, contentType: string = "") => {
     const byteCharacters = atob(base64);
     const byteArrays = [];
 
@@ -372,7 +392,11 @@ const FileUpload = ({
               <input
                 type="image"
                 height="96px"
-                src={isPDF ? "/images/backgrounds/upload-pdf.png" : "/images/backgrounds/upload-image.png"}
+                src={
+                  isPDF
+                    ? "/images/backgrounds/upload-pdf.png"
+                    : "/images/backgrounds/upload-image.png"
+                }
                 onClick={handleClick}
                 alt="Upload"
               />

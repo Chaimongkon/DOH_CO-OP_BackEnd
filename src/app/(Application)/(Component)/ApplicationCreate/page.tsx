@@ -10,20 +10,20 @@ import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 
 interface AppOption {
-  data: string;
-}
+    data: string;
+  }
 
 const ApplicationCreate = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const typeForm = searchParams.get("typeForm");
-  const currentYear = new Date().getFullYear();
-  const [no, setNo] = useState("");
-  const [image, setImage] = useState<File | null>(null);
-  const [subTitle, setSubTitle] = useState<AppOption | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [isSelectedimg, setIsSelectedimg] = useState(false);
-  const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const typeForm = searchParams.get("typeForm");
+    const currentYear = new Date().getFullYear();
+    const [no, setNo] = useState("");
+    const [image, setImage] = useState<File | null>(null);
+    const [subTitle, setSubTitle] = useState<AppOption | null>(null);
+    const [preview, setPreview] = useState<string | null>(null);
+    const [isSelectedimg, setIsSelectedimg] = useState(false);
+    const API = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const Install: AppOption[] = [
     { data: "การดาวน์โหลด" },
@@ -108,49 +108,38 @@ const ApplicationCreate = () => {
 
   const handleUpload = async () => {
     if (image) {
-      const reader = new FileReader();
-      reader.readAsDataURL(image);
-      reader.onloadend = async () => {
-        const base64String = reader.result?.toString().split(",")[1];
+      const formData = new FormData();
+      formData.append("number", no);
+      formData.append("applicationMainType", typeForm || "");
+      formData.append("applicationType", subTitle?.data || "");
+      formData.append("image", image); // Add the file directly
 
-        if (base64String) {
-          const imageType = image.type;
-          const response = await fetch(`${API}/Application/Create`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              number: no,
-              image: `data:${imageType};base64,${base64String}`,
-              applicationMainType: typeForm,
-              applicationType: subTitle?.data,
-            }),
-          });
+      const response = await fetch(`${API}/Application/Create`, {
+        method: "POST",
+        body: formData, // Send FormData with the file
+      });
 
-          if (response.ok) {
-            Swal.fire({
-              position: "top-end",
-              icon: "success",
-              title: "CREATE SUCCESSFULLY",
-              showConfirmButton: false,
-              timer: 1500,
-            }).then(() => {
-              router.back();
-            });
-            setImage(null);
-            setSubTitle(null);
-            setIsSelectedimg(false);
-            setPreview(null);
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Oops...",
-              text: "Failed to upload image.",
-            });
-          }
-        }
-      };
+      if (response.ok) {
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "CREATE SUCCESSFULLY",
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          router.back();
+        });
+        setImage(null);
+        setSubTitle(null);
+        setIsSelectedimg(false);
+        setPreview(null);
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Failed to upload image.",
+        });
+      }
     }
   };
 

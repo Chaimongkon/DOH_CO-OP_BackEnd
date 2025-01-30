@@ -1,11 +1,10 @@
-"use client";
-
+"use client"
+import { useRouter, useParams } from "next/navigation";
 import React, { useState, useEffect, useCallback } from "react";
 import { Autocomplete, Box, Button, Stack, TextField } from "@mui/material";
 import DashboardCard from "@/app/components/shared/DashboardCard";
 import PublishedWithChangesIcon from "@mui/icons-material/PublishedWithChanges";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { useParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import FlipCameraAndroidIcon from "@mui/icons-material/FlipCameraAndroid";
 
@@ -19,10 +18,11 @@ interface TypeOption {
   data: string;
 }
 
-const OrganizationalEdit: React.FC = () => {
+const CooperativeSocietyEdit: React.FC = () => {
   const router = useRouter();
   const { id } = useParams();
   const API = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
 
   const [formData, setFormData] = useState<FormData>({
     societyType: "",
@@ -43,19 +43,16 @@ const OrganizationalEdit: React.FC = () => {
   const fetchImages = useCallback(async () => {
     try {
       const response = await fetch(`${API}/CooperativeSociety/GetById/${id}`);
-
       if (!response.ok) {
         throw new Error("Failed to fetch data");
       }
-
       const data = await response.json();
-
       if (data && data.length > 0) {
         const society = data[0];
         setFormData({
           societyType: society.SocietyType || "",
           image: null,
-          imageUrl: `data:;base64,${society.Image || ""}`,
+          imageUrl: society.ImagePath ? `${URLFile}${society.ImagePath}` : "",
         });
       }
     } catch (error) {
@@ -78,9 +75,8 @@ const OrganizationalEdit: React.FC = () => {
       const imageUrl = URL.createObjectURL(imageFile);
       const img = new Image();
       img.src = imageUrl;
-
       img.onload = () => {
-        if (img.width > 1671 || img.height > 686) {
+        if (img.width > 1500 || img.height > 1500) {
           Swal.fire({
             icon: "error",
             title: "ขนาดภาพใหญ่เกิ๊น",
@@ -99,55 +95,43 @@ const OrganizationalEdit: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const { societyType, image } = formData;
 
-    const { societyType, image, imageUrl } = formData;
-
-    let base64Image = imageUrl;
-
-    if (image && image instanceof File) {
-      const reader = new FileReader();
-      reader.readAsDataURL(image);
-      reader.onloadend = async () => {
-        const base64String = reader.result?.toString().split(",")[1];
-        if (base64String) {
-          base64Image = `data:image/jpeg;base64,${base64String}`;
-          await submitForm(base64Image);
-        }
-      };
-    } else {
-      await submitForm(base64Image);
+    const formDataToSend = new FormData();
+    formDataToSend.append("societyType", societyType);
+    if (image) {
+      formDataToSend.append("image", image);
     }
-  };
 
-  const submitForm = async (base64Image: string | null) => {
-    const { societyType } = formData;
-
-    const response = await fetch(`${API}/CooperativeSociety/Edit/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        societyType,
-        image: base64Image,
-      }),
-    });
-
-    if (response.ok) {
-      Swal.fire({
-        position: "top-end",
-        icon: "success",
-        title: "UPDATE SUCCESSFULLY",
-        showConfirmButton: false,
-        timer: 1500,
-      }).then(() => {
-        router.push(`/CooperativeSocietyAll`);
+    try {
+      const response = await fetch(`${API}/CooperativeSociety/Edit/${id}`, {
+        method: "PUT",
+        body: formDataToSend,
       });
-    } else {
+
+      if (response.ok) {
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "UPDATE SUCCESSFULLY",
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          router.push(`/CooperativeSocietyAll`);
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Failed to upload image.",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating:", error);
       Swal.fire({
         icon: "error",
-        title: "Oops...",
-        text: "Failed to upload image.",
+        title: "Error",
+        text: "An error occurred while updating.",
       });
     }
   };
@@ -251,7 +235,7 @@ const OrganizationalEdit: React.FC = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => router.push(`/BoardOrganizational`)}
+              onClick={() => router.back()}
             >
               Cancel
             </Button>
@@ -262,4 +246,4 @@ const OrganizationalEdit: React.FC = () => {
   );
 };
 
-export default OrganizationalEdit;
+export default CooperativeSocietyEdit;

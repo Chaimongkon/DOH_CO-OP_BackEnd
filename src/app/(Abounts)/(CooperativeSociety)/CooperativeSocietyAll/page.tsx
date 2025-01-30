@@ -14,55 +14,50 @@ import { TabContext, TabList, TabPanel } from "@mui/lab";
 
 const { Meta } = Card;
 
-interface Board {
+interface CoopSociety {
   id: number;
-  image: string;
+  imagePath: string;
   societyType: string;
 }
 
 interface Data {
   Id: number;
-  Image: string;
+  ImagePath: string;
   SocietyType: string;
 }
 
-const base64ToBlobUrl = (base64: string) => {
-  const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-  const byteArray = new Uint8Array(byteNumbers);
-  const blob = new Blob([byteArray], { type: "image/webp" }); // adjust the type if necessary
-  return URL.createObjectURL(blob);
-};
-
 const CooperativeSocietyAll = () => {
   const router = useRouter();
-  const [board, setBoard] = useState<Board[]>([]);
+  const [coopSociety, setCoopSociety] = useState<CoopSociety[]>([]);
   const [rows, setRows] = useState<Data[]>([]);
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
   const isMobile = useMediaQuery("(max-width:768px)");
   const [value, setValue] = useState("");
 
-  const fetchBoard = useCallback(async () => {
+  const fetchCoopSociety = useCallback(async () => {
     try {
       const response = await fetch(`${API}/CooperativeSociety/GetAll`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-      const data = await response.json();
-  
-      const processedData = data.map((society: any) => ({
+
+      const result = await response.json();
+
+      // Access the 'data' property from the result if your API response is structured like { data: [...] }
+      const processedData = result.data.map((society: any) => ({
         id: society.Id,
-        image: base64ToBlobUrl(society.Image),
+        imagePath: `${URLFile}${society.ImagePath}`,
         societyType: society.SocietyType,
       }));
-      setBoard(processedData);
-      setRows(data);
-  
+
+      setCoopSociety(processedData);
+      setRows(result.data);
+      console.log(processedData);
       // Explicitly type uniqueTypes as string[]
-      const uniqueTypes: string[] = Array.from(new Set(data.map((row: any) => row.SocietyType)));
+      const uniqueTypes: string[] = Array.from(
+        new Set(result.data.map((row: any) => row.SocietyType))
+      );
       if (uniqueTypes.length > 0) {
         setValue(uniqueTypes[0]);
       }
@@ -70,7 +65,6 @@ const CooperativeSocietyAll = () => {
       console.error("Failed to fetch Board:", error);
     }
   }, [API]);
-  
 
   const handleDelete = async (id: number) => {
     try {
@@ -83,7 +77,9 @@ const CooperativeSocietyAll = () => {
           "The Organizational has been deleted.",
           "success"
         );
-        setBoard((prevBoard) => prevBoard.filter((board) => board.id !== id));
+        setCoopSociety((prevCoopSociety) =>
+          prevCoopSociety.filter((coopSociety) => coopSociety.id !== id)
+        );
       } else {
         Swal.fire("Error!", "Failed to delete the Organizational.", "error");
       }
@@ -98,8 +94,8 @@ const CooperativeSocietyAll = () => {
   };
 
   useEffect(() => {
-    fetchBoard();
-  }, [fetchBoard]);
+    fetchCoopSociety();
+  }, [fetchCoopSociety]);
 
   const uniqueType = useMemo(
     () => Array.from(new Set(rows.map((row) => row.SocietyType))),
@@ -147,7 +143,7 @@ const CooperativeSocietyAll = () => {
                   gap: 3,
                 }}
               >
-                {board
+                {coopSociety
                   .filter((b) => b.societyType === value)
                   .map((b) => (
                     <Card
@@ -159,7 +155,7 @@ const CooperativeSocietyAll = () => {
                         textAlign: "center",
                         margin: isMobile ? "0 auto" : undefined,
                       }}
-                      cover={<img alt="example" src={b.image} />}
+                      cover={<img alt="example" src={b.imagePath} />}
                       actions={[
                         <EditOutlined
                           key="edit"

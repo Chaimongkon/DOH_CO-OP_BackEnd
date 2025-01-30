@@ -12,22 +12,15 @@ export async function GET(
   try {
     const db = await pool.getConnection();
     const query =
-      "SELECT Id, Title,TypeForm, TypeMember, PdfFile  FROM statuteregularitydeclare WHERE Id = ?";
+      "SELECT Id, Title,TypeForm, TypeMember, FilePath  FROM statuteregularitydeclare WHERE Id = ?"; // Use file paths instead of binary data
     const [rows]: [any[], any] = await db.execute(query, [params.id]); // Use params.id to execute query
     db.release();
 
     // Ensure rows is treated as an array and format the response
     const processedRows = rows.map((row) => {
-      let fileBase64 = null;
-
-      // Convert File to base64 if not null
-      if (row.PdfFile) {
-        fileBase64 = Buffer.from(row.PdfFile).toString("base64");
-      }
-
       return {
         ...row,
-        PdfFile: fileBase64,
+        FilePath: row.FilePath, // Use the file path for the PDF
       };
     });
 

@@ -8,12 +8,15 @@ import { v4 as uuidv4 } from "uuid";
 import { Readable } from "stream";
 import { IncomingMessage } from "http";
 
-const uploadDir = path.join(process.cwd(), "/public/Uploads/PhotoAlbum");
+const uploadDir = path.join(process.cwd(), "/Uploads/PhotoAlbum");
+const uploadDir2 = "C:/FrontEndWeb/Uploads/PhotoAlbum"; // Update the path as per your environment
 
-// Ensure the upload directory exists
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Ensure both upload directories exist
+[uploadDir, uploadDir2].forEach((dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
 
 // Utility function to resize images
 const resizeImage = async (filePath: string): Promise<void> => {
@@ -100,10 +103,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const originalFilename = photo.originalFilename || ""; // Handle potential null
     const fileName = uuidv4() + path.extname(originalFilename); // Use empty string if null
     const outputFilePath = path.join(uploadDir, fileName);
+    const outputFilePath2 = path.join(uploadDir2, fileName); // Path for the second directory
 
-    // Move and resize the image
+    // Move and resize the image to the first directory
     fs.renameSync(photo.filepath, outputFilePath);
     await resizeImage(outputFilePath);
+
+    // Copy the file to the second directory
+    fs.copyFileSync(outputFilePath, outputFilePath2);
 
     // Fetch the current images from the database
     const connection = await pool.getConnection();

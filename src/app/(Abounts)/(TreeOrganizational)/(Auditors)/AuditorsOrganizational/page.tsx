@@ -13,30 +13,21 @@ import { useRouter } from "next/navigation";
 
 const { Meta } = Card;
 
-interface Board {
+interface Auditor {
   id: number;
   name: string;
   position: string;
   priority: string;
   type: string;
-  image: string;
+  imagePath: string;
 }
 
-const base64ToBlobUrl = (base64: string) => {
-  const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-  const byteArray = new Uint8Array(byteNumbers);
-  const blob = new Blob([byteArray], { type: "image/webp" }); // adjust the type if necessary
-  return URL.createObjectURL(blob);
-};
 
 const AuditorsOrganizational = () => {
   const router = useRouter();
-  const [board, setBoard] = useState<Board[]>([]);
+  const [board, setBoard] = useState<Auditor[]>([]);
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
   const isMobile = useMediaQuery("(max-width:768px)");
 
   const fetchBoard = useCallback(async () => {
@@ -47,13 +38,13 @@ const AuditorsOrganizational = () => {
       }
       const data = await response.json();
 
-      const processedData = data.map((boards: any) => ({
-        id: boards.Id,
-        name: boards.Name,
-        position: boards.Position,
-        priority: boards.Priority,
-        type: boards.Type,
-        image: base64ToBlobUrl(boards.Image),
+      const processedData = data.map((auditor: any) => ({
+        id: auditor.Id,
+        name: auditor.Name,
+        position: auditor.Position,
+        priority: auditor.Priority,
+        type: auditor.Type,
+        imagePath: `${URLFile}${auditor.ImagePath}`,
       }));
       setBoard(processedData);
     } catch (error) {
@@ -110,7 +101,7 @@ const AuditorsOrganizational = () => {
               width: isMobile ? "80%" : "15%", // Adjust width for mobile devices
               textAlign: "center",
             }}
-            cover={<img alt="example" src={b.image} />}
+            cover={<img alt="example" src={b.imagePath} />}
             actions={[
               <EditOutlined key="edit" onClick={() => router.push(`/AuditorsOrganizationalEdit/${b.id}`)} />,
               <DeleteOutlined key="delete" onClick={() => handleDelete(b.id)} />,

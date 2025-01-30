@@ -1,4 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
+import { v4 as uuidv4 } from "uuid";
+import path from "path";
+import fs from "fs/promises";
 import pool from "../../../../db/mysql";
 
 type Params = {
@@ -12,18 +15,31 @@ export async function PUT(
   const { id } = params;
 
   try {
-    const data = await request.json();
-    const { title, typeForm, typeMember, pdf } = data;
+    const formData = await request.formData();
+    const title = formData.get("title") as string;
+    const typeForm = formData.get("typeForm") as string;
+    const typeMember = formData.get("typeMember") as string;
+    const pdfFile = formData.get("pdf") as File | null;
 
-    let query = "UPDATE statuteregularitydeclare SET Title = ?, TypeForm = ?, TypeMember = ?, UpdateDate = NOW()";
-    const paramsArray: (string | Buffer)[] = [title, typeForm, typeMember ];
+    let query =
+      "UPDATE statuteregularitydeclare SET Title = ?, TypeForm = ?, TypeMember = ?, UpdateDate = NOW()";
+    const paramsArray: string[] = [title, typeForm, typeMember];
 
-    if (pdf) {
-      const pdfBuffer = Buffer.from(pdf.split(",")[1], "base64");
-      query += ", PdfFile = ?";
-      paramsArray.push(pdfBuffer);
+    // Handle PDF file upload if provided
+    if (pdfFile) {
+      const pdfUUID = `${uuidv4()}.pdf`;
+      const pdfPath = path.join(
+        process.cwd(),
+        "public/Uploads/SRD",
+        pdfUUID
+      );
+      const pdfBuffer = Buffer.from(await pdfFile.arrayBuffer());
+      await fs.writeFile(pdfPath, pdfBuffer); // Save the PDF file
+      query += ", FilePath = ?";
+      paramsArray.push(`/Uploads/SRD/${pdfUUID}`);
     }
 
+    // Complete the query with the ID
     query += " WHERE Id = ?";
     paramsArray.push(id);
 

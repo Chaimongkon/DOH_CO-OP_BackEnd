@@ -1,28 +1,30 @@
 import { NextResponse, NextRequest } from "next/server";
 import pool from "../../../db/mysql";
 import { RowDataPacket, FieldPacket } from "mysql2";
+import path from "path";
 
 export const dynamic = 'force-dynamic';
+
 // Define the types for the query results
 interface FormDownloadRow extends RowDataPacket {
   Id: number;
   Title: string;
   TypeForm: string;
   TypeMember: string;
-  PdfFile: Buffer | null;
+  PdfPath: string | null;
 }
+
 export async function GET(req: NextRequest) {
   let db;
   try {
     db = await pool.getConnection();
-    const query = "SELECT Id, Title,TypeForm, TypeMember, PdfFile FROM statuteregularitydeclare ORDER BY TypeForm DESC";
-    
+    const query = "SELECT Id, Title,TypeForm, TypeMember, FilePath FROM statuteregularitydeclare ORDER BY TypeForm DESC";
+
     const [rows]: [FormDownloadRow[], FieldPacket[]] = await db.execute(query);
 
-    // Process the rows to convert the PdfFile fields to base64 strings
+    // Process the rows to return the full URL for the PDF file path
     const processedRows = rows.map((row) => ({
       ...row,
-      PdfFile: row.PdfFile ? Buffer.from(row.PdfFile).toString("base64") : null,
     }));
 
     return NextResponse.json(

@@ -32,11 +32,12 @@ const OrganizationalCreate = () => {
   const Type: TypeOption[] = [
     { data: "ผู้จัดการใหญ่และรองผู้จัดการฯ" },
     { data: "ฝ่ายสินเชื่อ" },
-    { data: "ฝ่ายการเงิน" },
-    { data: "ฝ่ายหารายได้และสมาชิกสัมพันธ์" },
-    { data: "ฝ่ายทะเบียนหุ้นและบัญชีเงินกู้" },
+    { data: "ฝ่ายการเงินและการลงทุน" },
+    { data: "ฝ่ายสมาชิกสัมพันธ์และสวัสดิการ" },
+    { data: "ฝ่ายทะเบียนหุ้นและติดตามหนี้สิน" },
     { data: "ฝ่ายบริหารทั่วไป" },
     { data: "ฝ่ายบัญชี" },
+    { data: "ฝ่ายสารสนเทศ" },
   ];
   const Priority: PriorityOption[] = [
     { data: "1" },
@@ -85,53 +86,42 @@ const OrganizationalCreate = () => {
 
   const handleUpload = async () => {
     if (image) {
-      const reader = new FileReader();
-      reader.readAsDataURL(image);
-      reader.onloadend = async () => {
-        const base64String = reader.result?.toString().split(",")[1];
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("position", position);
+      formData.append("priority", titlePriority?.data || "");
+      formData.append("type", titleType?.data || "");
+      formData.append("image", image); // Add the file directly
 
-        if (base64String) {
-          const imageType = image.type;
-          const response = await fetch(`${API}/TreeOrganizational/Create`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              name: name,
-              position: position,
-              priority: titlePriority?.data,
-              type: titleType?.data,
-              image: `data:${imageType};base64,${base64String}`,
-            }),
-          });
+      const response = await fetch(`${API}/TreeOrganizational/Create`, {
+        method: "POST",
+        body: formData, // Send FormData with the file
+      });
 
-          if (response.ok) {
-            Swal.fire({
-              position: "top-end",
-              icon: "success",
-              title: "CREATE SUCCESSFULLY",
-              showConfirmButton: false,
-              timer: 1500,
-            }).then(() => {
-              router.push(`/OfficerOrganizational`);
-            });
-            setImage(null);
-            setName("");
-            setPosition("");
-            setTitleType(null);
-            setTitlePriority(null);
-            setIsSelectedimg(false);
-            setPreview(null);
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Oops...",
-              text: "Failed to upload image.",
-            });
-          }
-        }
-      };
+      if (response.ok) {
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "CREATE SUCCESSFULLY",
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          router.back();
+        });
+        setImage(null);
+        setName("");
+        setPosition("");
+        setTitleType(null);
+        setTitlePriority(null);
+        setIsSelectedimg(false);
+        setPreview(null);
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Failed to upload image.",
+        });
+      }
     }
   };
 
@@ -285,7 +275,7 @@ const OrganizationalCreate = () => {
               variant="contained"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => router.push(`/NotifyAll`)}
+              onClick={() => router.back()}
             >
               Cancel
             </Button>

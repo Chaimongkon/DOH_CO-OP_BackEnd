@@ -14,23 +14,17 @@ const NewCreate = () => {
   const [image, setImage] = useState<File | null>(null);
   const [pdf, setPDF] = useState<File | null>(null);
   const [details, setDetails] = useState("");
-  const [preview, setPreview] = useState<string | null>(null);
-  const [pdfpreview, setPdfpreview] = useState<string>(""); 
-  const [isSelectedimg, setIsSelectedimg] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null); // Image preview
+  const [pdfPreview, setPdfPreview] = useState<string | null>(null); // PDF preview
+  const [isSelectedImg, setIsSelectedImg] = useState(false);
   const [isSelectedPDF, setIsSelectedPDF] = useState(false);
-
-  const API = process.env.NEXT_PUBLIC_API_BASE_URL;
-
   const hiddenFileInput = useRef<HTMLInputElement | null>(null);
   const hiddenPDFFileInput = useRef<HTMLInputElement | null>(null);
 
-  const handleClick = () => {
-    hiddenFileInput.current?.click();
-  };
+  const API = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  const handlePDFClick = () => {
-    hiddenPDFFileInput.current?.click();
-  };
+  const handleClick = () => hiddenFileInput.current?.click();
+  const handlePDFClick = () => hiddenPDFFileInput.current?.click();
 
   const handleImage = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -46,16 +40,12 @@ const NewCreate = () => {
             html: `กรุณาเลือกรูปภาพที่มีขนาด <font style="color:red"><b>512px X 512px</b></font> <br />หรือ รูปที่เล็กกว่า`,
           });
           setImage(null);
-          setIsSelectedimg(false);
+          setIsSelectedImg(false);
           setPreview(null);
         } else {
           setImage(selectedImage);
-          setIsSelectedimg(true);
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setPreview(reader.result as string);
-          };
-          reader.readAsDataURL(selectedImage);
+          setIsSelectedImg(true);
+          setPreview(URL.createObjectURL(selectedImage)); // Set image preview URL
         }
       };
     }
@@ -64,13 +54,9 @@ const NewCreate = () => {
   const handlePDF = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const selectedPDF = event.target.files[0];
-      const readerpdf = new FileReader();
-      readerpdf.readAsDataURL(selectedPDF);
-      readerpdf.onloadend = () => {
-        setPdfpreview(readerpdf.result as string || ""); // Use empty string as fallback
-        setPDF(selectedPDF);
-        setIsSelectedPDF(true);
-      };
+      setPDF(selectedPDF);
+      setPdfPreview(URL.createObjectURL(selectedPDF)); // Set PDF preview URL
+      setIsSelectedPDF(true);
     }
   };
 
@@ -81,80 +67,72 @@ const NewCreate = () => {
 
   const handleUpload = async () => {
     if (image && pdf) {
-      const readerimg = new FileReader();
-      readerimg.readAsDataURL(image);
-      readerimg.onloadend = async () => {
-        const base64Stringimg = readerimg.result?.toString().split(",")[1];
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("details", details || ""); // Allow empty details
+      formData.append("image", image);
+      formData.append("pdf", pdf);
 
-        const readerpdf = new FileReader();
-        readerpdf.readAsDataURL(pdf);
-        readerpdf.onloadend = async () => {
-          const base64Stringpdf = readerpdf.result?.toString().split(",")[1];
+      // Log the FormData keys and values for debugging
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
 
-          if (base64Stringimg && base64Stringpdf) {
-            const imageType = image.type;
-            const response = await fetch(`${API}/News/Create`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                title: title,
-                details: details,
-                image: `data:${imageType};base64,${base64Stringimg}`,
-                pdf: `data:application/pdf;base64,${base64Stringpdf}`,
-              }),
+      try {
+        const response = await fetch(`${API}/News/Create`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          Swal.fire({
+            position: "top-end",
+            icon: "success",
+            title: "CREATE SUCCESSFULLY",
+            showConfirmButton: false,
+            timer: 1500,
+          }).then(() => router.push(`/NewAll`));
+
+          setImage(null);
+          setPDF(null);
+          setTitle("");
+          setDetails("");
+          setIsSelectedImg(false);
+          setIsSelectedPDF(false);
+          setPreview(null);
+          setPdfPreview(null); // Reset previews
+        } else {
+          try {
+            const errorData = await response.json();
+            Swal.fire({
+              icon: "error",
+              title: "Oops...",
+              text: `Failed to upload: ${errorData.error || "Unknown error"}`,
             });
-
-            if (response.ok) {
-              Swal.fire({
-                position: "top-end",
-                icon: "success",
-                title: "CREATE SUCCESSFULLY",
-                showConfirmButton: false,
-                timer: 1500,
-              }).then(() => {
-                router.push(`/NewAll`);
-              });
-              setImage(null);
-              setPDF(null);
-              setTitle("");
-              setDetails("");
-              setIsSelectedimg(false);
-              setIsSelectedPDF(false);
-              setPreview(null);
-              setPdfpreview(""); // Reset to empty string
-            } else {
-              const errorData = await response.json();
-              Swal.fire({
-                icon: "error",
-                title: "Oops...",
-                text: `Failed to upload: ${errorData.error}`,
-              });
-            }
+          } catch (err) {
+            const errorText = await response.text();
+            Swal.fire({
+              icon: "error",
+              title: "Oops...",
+              text: `Failed to upload: ${errorText || "Unknown error"}`,
+            });
           }
-        };
-      };
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Network Error",
+          text: "There was a problem with your request. Please try again.",
+        });
+      }
     } else {
       Swal.fire({
         icon: "warning",
-        title: "Missing image or pdf",
-        text: "Please select both an image and a pdf.",
+        title: "Missing image or PDF",
+        text: "Please select both an image and a PDF.",
       });
     }
   };
-
-  useEffect(() => {
-    if (image) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(image);
-    } else {
-      setPreview(null);
-    }
-  }, [image]);
 
   return (
     <DashboardCard title="Create News">
@@ -193,11 +171,11 @@ const NewCreate = () => {
           >
             <label>
               รูปภาพ{" "}
-              <span style={{ color: "red" }}>ขนาดภาพสวยๆ 300px X 300px</span>
+              <span style={{ color: "red" }}>ขนาดภาพสวยๆ 512px X 512px</span>
             </label>
             <br />
             <br />
-            {isSelectedimg ? (
+            {isSelectedImg ? (
               <div>
                 <center>
                   <img height="206px" src={preview ?? ""} alt="Preview" />
@@ -260,11 +238,11 @@ const NewCreate = () => {
             </label>
             <br />
             <br />
-            {isSelectedPDF && pdfpreview ? (
+            {isSelectedPDF && pdfPreview ? (
               <div>
                 <center>
                   <iframe
-                    src={pdfpreview}
+                    src={pdfPreview}
                     width="100%"
                     height="600px"
                     title="PDF Preview"

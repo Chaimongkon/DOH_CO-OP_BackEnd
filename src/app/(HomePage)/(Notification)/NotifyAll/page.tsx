@@ -1,208 +1,162 @@
 "use client";
-import DashboardCard from "@/app/components/shared/DashboardCard";
 import { useEffect, useState, useCallback } from "react";
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import { FormControlLabel, Paper, useMediaQuery } from "@mui/material";
+import { useRouter } from "next/navigation";
+import {
+  Box,
+  Container,
+  FormControlLabel,
+  Paper,
+  useMediaQuery,
+  Button,
+  Typography,
+  Card,
+  CardActions,
+  CardContent,
+  CardMedia,
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
 import axios from "axios";
 import Swal from "sweetalert2";
-import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
-import CardContent from "@mui/material/CardContent";
-import CardMedia from "@mui/material/CardMedia";
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
+import Link from "next/link";
+import DashboardCard from "@/app/components/shared/DashboardCard";
+import theme from "@/utils/theme";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import theme from "@/utils/theme";
-import { styled } from "@mui/material/styles";
 import Switch, { SwitchProps } from "@mui/material/Switch";
 
 interface Notifi {
   id: number;
-  image: string;
+  imagePath: string;
   url: string;
   status: boolean;
 }
 
-const base64ToBlobUrl = (base64: string) => {
-  const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-  const byteArray = new Uint8Array(byteNumbers);
-  const blob = new Blob([byteArray], { type: 'image/webp' }); // adjust the type if necessary
-  return URL.createObjectURL(blob);
-};
+// Styled switch component
+const IOSSwitch = styled(Switch)<SwitchProps>(({ theme }) => ({
+  width: 42,
+  height: 26,
+  padding: 0,
+  "& .MuiSwitch-switchBase": {
+    padding: 0,
+    margin: 2,
+    transitionDuration: "300ms",
+    "&.Mui-checked": {
+      transform: "translateX(16px)",
+      color: "#fff",
+      "& + .MuiSwitch-track": {
+        backgroundColor: theme.palette.mode === "dark" ? "#2ECA45" : "#65C466",
+        opacity: 1,
+        border: 0,
+      },
+    },
+  },
+  "& .MuiSwitch-thumb": {
+    width: 22,
+    height: 22,
+  },
+  "& .MuiSwitch-track": {
+    borderRadius: 13,
+    backgroundColor: theme.palette.mode === "light" ? "#E9E9EA" : "#39393D",
+    opacity: 1,
+    transition: theme.transitions.create(["background-color"], {
+      duration: 500,
+    }),
+  },
+}));
 
 const NotifyAll = () => {
   const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [checked, setChecked] = useState<string>("");
-  const [id, setId] = useState<string>("");
-  const [notifi, setNotifi] = useState<Notifi[]>([]);
+  const [notifications, setNotifications] = useState<Notifi[]>([]);
+  const [statusUpdate, setStatusUpdate] = useState<{
+    id: string;
+    status: string;
+  }>({ id: "", status: "" });
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
 
-  const IOSSwitch = styled((props: SwitchProps) => (
-    <Switch
-      focusVisibleClassName=".Mui-focusVisible"
-      disableRipple
-      {...props}
-    />
-  ))(({ theme }) => ({
-    width: 42,
-    height: 26,
-    padding: 0,
-    "& .MuiSwitch-switchBase": {
-      padding: 0,
-      margin: 2,
-      transitionDuration: "300ms",
-      "&.Mui-checked": {
-        transform: "translateX(16px)",
-        color: "#fff",
-        "& + .MuiSwitch-track": {
-          backgroundColor:
-            theme.palette.mode === "dark" ? "#2ECA45" : "#65C466",
-          opacity: 1,
-          border: 0,
-        },
-        "&.Mui-disabled + .MuiSwitch-track": {
-          opacity: 0.5,
-        },
-      },
-      "&.Mui-focusVisible .MuiSwitch-thumb": {
-        color: "#33cf4d",
-        border: "6px solid #fff",
-      },
-      "&.Mui-disabled .MuiSwitch-thumb": {
-        color:
-          theme.palette.mode === "light"
-            ? theme.palette.grey[100]
-            : theme.palette.grey[600],
-      },
-      "&.Mui-disabled + .MuiSwitch-track": {
-        opacity: theme.palette.mode === "light" ? 0.7 : 0.3,
-      },
-    },
-    "& .MuiSwitch-thumb": {
-      boxSizing: "border-box",
-      width: 22,
-      height: 22,
-    },
-    "& .MuiSwitch-track": {
-      borderRadius: 26 / 2,
-      backgroundColor: theme.palette.mode === "light" ? "#E9E9EA" : "#39393D",
-      opacity: 1,
-      transition: theme.transitions.create(["background-color"], {
-        duration: 500,
-      }),
-    },
-  }));
-
-  const fetchImages = useCallback(async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const response = await fetch(`${API}/Notifications/GetAll`);
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const data = await response.json();
+      if (!response.ok) throw new Error("Network response was not ok");
 
-      // Assuming the image data is base64 encoded
-      const processedData = data.map((notify: any) => ({
-        id: notify.Id,
-        image: base64ToBlobUrl(notify.Image),
-        url: notify.URLLink,
-        status: notify.IsActive,
+      const { data } = await response.json();
+      const processedData = data.map((item: any) => ({
+        id: item.Id,
+        imagePath: `${URLFile}${item.ImagePath}`,
+        url: item.URLLink,
+        status: item.IsActive,
       }));
 
-      setNotifi(processedData);
+      setNotifications(processedData);
     } catch (error) {
-      console.error("Failed to fetch images:", error);
+      console.error("Failed to fetch notifications:", error);
     }
-  }, [API]);
+  }, [API, URLFile]);
 
-  const handleCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
-    let updatedList = "";
-    const updatedID = event.target.value;
+  // Handle status update
+  const handleStatusChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newStatus = event.target.checked ? "1" : "0";
+    const id = event.target.value;
+    setStatusUpdate({ id, status: newStatus });
 
-    if (event.target.checked) {
-      updatedList = "1";
-    } else {
-      updatedList = "0";
-    }
-
-    setChecked(updatedList);
-    setId(updatedID);
-
-    if (id.length > 0) {
-      hastatus();
-    }
-  };
-
-  const hastatus = useCallback(async () => {
     try {
       const response = await fetch(`${API}/Notifications/UpdateStatus/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: id,
-          status: checked,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: newStatus }),
       });
+
       const result = await response.json();
-      console.log(result);
-
-      Swal.fire({
-        position: "top-end",
-        icon: "success",
-        title: "UPDATE STATUS SUCCESSFULLY",
-        showConfirmButton: false,
-        timer: 1500,
-      });
-
-      if (result.status === "OK") {
-        window.location.reload();
+      if (result.message === "OK") {
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "UPDATE STATUS SUCCESSFULLY",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+        setNotifications((prev) =>
+          prev.map((notif) =>
+            notif.id.toString() === id
+              ? { ...notif, status: newStatus === "1" }
+              : notif
+          )
+        );
       }
     } catch (error) {
-      console.error("error", error);
+      console.error("Failed to update status:", error);
     }
-  }, [API, id, checked]);
+  };
 
-  const Delete = async (id: number) => {
+  // Handle delete notification
+  const handleDelete = async (id: number) => {
     try {
       const response = await axios.delete(`${API}/Notifications/Delete`, {
         data: { id },
       });
       if (response.status === 200) {
-        Swal.fire("Deleted!", "The slide has been deleted.", "success");
-        setNotifi((prevSlides) =>
-          prevSlides.filter((notifi) => notifi.id !== id)
-        );
+        Swal.fire("Deleted!", "The notification has been deleted.", "success");
+        setNotifications((prev) => prev.filter((notif) => notif.id !== id));
       } else {
-        Swal.fire("Error!", "Failed to delete the slide.", "error");
+        Swal.fire("Error!", "Failed to delete the notification.", "error");
       }
     } catch (error) {
-      console.error("Failed to delete slide:", error);
+      console.error("Failed to delete notification:", error);
       Swal.fire(
         "Error!",
-        "An error occurred while deleting the slide.",
+        "An error occurred while deleting the notification.",
         "error"
       );
     }
   };
 
   useEffect(() => {
-    fetchImages();
-    if (Object.keys(id).length > 0) {
-      hastatus();
-    }
-  }, [id, fetchImages, hastatus]);
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   return (
     <DashboardCard title="จัดการ Notifications ">
@@ -221,18 +175,11 @@ const NotifyAll = () => {
               </Button>
             </Link>
           </Box>
-
           <Box
             component="ul"
-            sx={{
-              display: "flex",
-              gap: 3,
-              flexWrap: "wrap",
-              p: 2,
-              m: 0,
-            }}
+            sx={{ display: "flex", gap: 3, flexWrap: "wrap", p: 2, m: 0 }}
           >
-            {notifi.map((notifiy) => (
+            {notifications.map((notif) => (
               <Card
                 variant="outlined"
                 sx={{
@@ -240,62 +187,46 @@ const NotifyAll = () => {
                   padding: isMobile ? 1 : 2,
                   margin: "auto",
                 }}
-                key={notifiy.id}
+                key={notif.id}
               >
                 <CardMedia
                   component="img"
-                  alt="green iguana"
-                  sx={{
-                    height: { xs: 220, sm: 240, md: 318 },
-                  }}
-                  image={notifiy.image}
+                  alt="Notification Image"
+                  sx={{ height: { xs: 220, sm: 240, md: 318 } }}
+                  image={notif.imagePath}
                 />
                 <CardContent>
                   <Typography gutterBottom variant="h6" component="div">
-                    URL Link : {notifiy.url}
+                    URL Link: {notif.url}
                   </Typography>
                 </CardContent>
                 <CardActions
-                  sx={{
-                    flexDirection: { xs: "column", sm: "row" }, // Stack buttons vertically on small screens
-                    alignItems: { xs: "stretch", sm: "center" }, // Stretch buttons on small screens
-                    gap: { xs: 1, sm: 1 }, // Add some space between buttons
-                    justifyContent: "space-between",
-                  }}
+                  sx={{ flexDirection: { xs: "column", sm: "row" }, gap: 1 }}
                 >
-                  <Box></Box>
                   <Button
-                    component="label"
-                    role={undefined}
                     variant="contained"
                     size="small"
                     color="warning"
-                    tabIndex={-1}
                     startIcon={<EditIcon />}
-                    onClick={() => router.push(`/NotifyEdit/${notifiy.id}`)}
+                    onClick={() => router.push(`/NotifyEdit/${notif.id}`)}
                   >
                     Edit
                   </Button>
                   <Button
-                    component="label"
-                    role={undefined}
                     variant="contained"
                     size="small"
                     color="error"
-                    tabIndex={-1}
                     startIcon={<DeleteIcon />}
-                    onClick={() => Delete(notifiy.id)}
+                    onClick={() => handleDelete(notif.id)}
                   >
                     Delete
                   </Button>
-
-                  <Box flexGrow={1} />
                   <FormControlLabel
                     control={
                       <IOSSwitch
-                        defaultChecked={Boolean(notifiy.status)}
-                        onChange={handleCheck}
-                        value={notifiy.id}
+                        defaultChecked={notif.status}
+                        onChange={handleStatusChange}
+                        value={notif.id}
                       />
                     }
                     label=""

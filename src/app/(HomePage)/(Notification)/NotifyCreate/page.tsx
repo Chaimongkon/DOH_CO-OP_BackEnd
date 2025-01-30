@@ -59,51 +59,55 @@ const NotifyCreate = () => {
 
   const handleUpload = async () => {
     if (image) {
-      const reader = new FileReader();
-      reader.readAsDataURL(image);
-      reader.onloadend = async () => {
-        const base64String = reader.result?.toString().split(",")[1];
+      try {
+        const formData = new FormData();
+        formData.append("image", image); // Appending image file
+        formData.append("urllink", url);
 
-        if (base64String) {
-          const imageType = image.type;
-          const response = await fetch(`${API}/Notifications/Create`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              image: `data:${imageType};base64,${base64String}`,
-              urllink: url,
-            }),
+        const response = await fetch(`${API}/Notifications/Create`, {
+          method: "POST",
+          body: formData, // Sending form data
+        });
+
+        if (response.ok) {
+          Swal.fire({
+            position: "top-end",
+            icon: "success",
+            title: "CREATE SUCCESSFULLY",
+            showConfirmButton: false,
+            timer: 1500,
+          }).then(() => {
+            router.push(`/NotifyAll`);
           });
 
-          if (response.ok) {
-            Swal.fire({
-              position: "top-end",
-              icon: "success",
-              title: "CREATE SUCCESSFULLY",
-              showConfirmButton: false,
-              timer: 1500,
-            }).then(() => {
-              router.push(`/NotifyAll`);
-            });;
-            setImage(null);
-            setUrl("");
-            setIsSelectedimg(false);
-            setPreview(null);
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Oops...",
-              text: "Failed to upload image.",
-            });
-          }
+          setImage(null);
+          setUrl("");
+        } else {
+          const errorData = await response.json();
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: `Failed to upload image: ${errorData.error}`,
+          });
         }
-      };
+      } catch (error) {
+        console.error("Error during upload:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "An unexpected error occurred.",
+        });
+      }
+    } else {
+      Swal.fire({
+        icon: "warning",
+        title: "No Image Selected",
+        text: "Please select an image to upload.",
+      });
     }
   };
 
-  useEffect(() => {
+    useEffect(() => {
     if (image) {
       const reader = new FileReader();
       reader.onloadend = () => {

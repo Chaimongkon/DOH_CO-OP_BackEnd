@@ -19,6 +19,7 @@ const ServiceCreate = () => {
   const typeForm = searchParams.get("typeForm");
   const currentYear = new Date().getFullYear();
   const [title, setTitle] = useState("");
+  const [url, setUrl] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [titleMain, setTitleMain] = useState<MemberOption | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -58,6 +59,8 @@ const ServiceCreate = () => {
     { data: "เงินกู้พิเศษ" },
   ];
 
+  const Bank: MemberOption[] = [{ data: "บัญชีธนาคารสหกรณ์" }];
+
   const hiddenFileInput = useRef<HTMLInputElement | null>(null);
 
   const handleClick = () => {
@@ -71,7 +74,7 @@ const ServiceCreate = () => {
       img.src = URL.createObjectURL(selectedImage);
 
       img.onload = () => {
-        if (img.width > 1500 || img.height > 2800) {
+        if (img.width > 1700 || img.height > 3000) {
           Swal.fire({
             icon: "error",
             title: "ขนาดภาพใหญ่เกิ๊น",
@@ -100,52 +103,42 @@ const ServiceCreate = () => {
 
   const handleUpload = async () => {
     if (image) {
-      const reader = new FileReader();
-      reader.readAsDataURL(image);
-      reader.onloadend = async () => {
-        const base64String = reader.result?.toString().split(",")[1];
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("maintype", typeForm || "");
+      formData.append("subcategories", titleMain?.data || "");
+      formData.append("urllink", url || "");
+      formData.append("image", image); // Add the file directly
 
-        if (base64String) {
-          const imageType = image.type;
-          const response = await fetch(`${API}/Services/Create`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              title: title,
-              maintype: typeForm,
-              subcategories: titleMain?.data,
-              image: `data:${imageType};base64,${base64String}`,
-            }),
-          });
+      const response = await fetch(`${API}/Services/Create`, {
+        method: "POST",
+        body: formData, // Send FormData with the file
+      });
 
-          if (response.ok) {
-            Swal.fire({
-              position: "top-end",
-              icon: "success",
-              title: "CREATE SUCCESSFULLY",
-              showConfirmButton: false,
-              timer: 1500,
-            }).then(() => {
-              router.back()
-            });
-            setImage(null);
-            setTitleMain(null);
-            setIsSelectedimg(false);
-            setPreview(null);
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Oops...",
-              text: "Failed to upload image.",
-            });
-          }
-        }
-      };
+      if (response.ok) {
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "CREATE SUCCESSFULLY",
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          router.back();
+        });
+        setImage(null);
+        setTitleMain(null);
+        setIsSelectedimg(false);
+        setPreview(null);
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Failed to upload image.",
+        });
+      }
     }
   };
-  
+
   // Function to dynamically set the options based on typeForm
   const getOptions = () => {
     if (typeForm === "สมัครสมาชิก") {
@@ -158,7 +151,10 @@ const ServiceCreate = () => {
       return Deposit;
     } else if (typeForm === "บริการเงินกู้") {
       return Loan;
+    } else if (typeForm === "บัญชีธนาคารสหกรณ์") {
+      return Bank;
     }
+
     return [];
   };
 
@@ -203,6 +199,16 @@ const ServiceCreate = () => {
             renderInput={(params) => (
               <TextField {...params} label="ประเภทย่อย" />
             )}
+          />
+        </Box>
+        <Box component="section" sx={{ p: 2 }}>
+          <TextField
+            fullWidth
+            id="outlined-basic"
+            label="URL LINK"
+            variant="outlined"
+            size="small"
+            onChange={(e) => setUrl(e.target.value)}
           />
         </Box>
         {/* PDF File Select */}

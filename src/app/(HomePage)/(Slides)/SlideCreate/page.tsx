@@ -60,73 +60,47 @@ const SlideCreate = () => {
 
   const handleUpload = async () => {
     if (image) {
-      const reader = new FileReader();
-      reader.readAsDataURL(image);
+      try {
+        const formData = new FormData();
+        formData.append("no", no);
+        formData.append("image", image); // Appending image file
+        formData.append("urllink", url);
 
-      reader.onloadend = async () => {
-        try {
-          const base64String = reader.result?.toString().split(",")[1];
+        const response = await fetch(`${API}/Slides/Create`, {
+          method: "POST",
+          body: formData, // Sending form data
+        });
 
-          if (base64String) {
-            const imageType = image.type;
-            const response = await fetch(`${API}/Slides/Create`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                no: parseInt(no),  // Ensure `no` is a number
-                image: `data:${imageType};base64,${base64String}`,
-                urllink: url,
-              }),
-            });
+        if (response.ok) {
+          Swal.fire({
+            position: "top-end",
+            icon: "success",
+            title: "CREATE SUCCESSFULLY",
+            showConfirmButton: false,
+            timer: 1500,
+          }).then(() => {
+            router.push(`/SlideAll`);
+          });
 
-            if (response.ok) {
-              Swal.fire({
-                position: "top-end",
-                icon: "success",
-                title: "CREATE SUCCESSFULLY",
-                showConfirmButton: false,
-                timer: 1500,
-              }).then(() => {
-                router.push(`/SlideAll`);
-              });
-
-              setImage(null);
-              setNo("");
-              setUrl("");
-            } else {
-              const errorData = await response.json();
-              Swal.fire({
-                icon: "error",
-                title: "Oops...",
-                text: `Failed to upload image: ${errorData.error}`,
-              });
-            }
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Oops...",
-              text: "Invalid image data.",
-            });
-          }
-        } catch (error) {
-          console.error("Error during upload:", error);
+          setImage(null);
+          setNo("");
+          setUrl("");
+        } else {
+          const errorData = await response.json();
           Swal.fire({
             icon: "error",
             title: "Oops...",
-            text: "An unexpected error occurred.",
+            text: `Failed to upload image: ${errorData.error}`,
           });
         }
-      };
-
-      reader.onerror = () => {
+      } catch (error) {
+        console.error("Error during upload:", error);
         Swal.fire({
           icon: "error",
           title: "Oops...",
-          text: "Failed to read the image file.",
+          text: "An unexpected error occurred.",
         });
-      };
+      }
     } else {
       Swal.fire({
         icon: "warning",
@@ -135,7 +109,6 @@ const SlideCreate = () => {
       });
     }
   };
-  
 
   useEffect(() => {
     if (image) {

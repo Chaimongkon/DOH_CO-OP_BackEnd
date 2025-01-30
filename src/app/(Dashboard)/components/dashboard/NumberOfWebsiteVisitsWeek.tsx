@@ -16,9 +16,10 @@ interface VisitsData {
 
 const NumberOfWebsiteVisitsWeek: React.FC = () => {
   const [visitsData, setVisitsData] = useState<VisitsData | null>(null);
+  const API = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/Visits/GetAll")
+    fetch(`${API}/Visits/GetAll`)
       .then((response) => response.json())
       .then((data: VisitsData) => {
         setVisitsData(data);

@@ -17,7 +17,7 @@ const { Meta } = Card;
 interface App {
   id: number;
   imageNumber: number;
-  image: string;
+  imagePath: string;
   applicationMainType: string;
   applicationType: string;
 }
@@ -25,27 +25,17 @@ interface App {
 interface Data {
   Id: number;
   ImageNumber: number;
-  Image: Buffer;
+  ImagePath: Buffer;
   ApplicationMainType: string;
   ApplicationType: string;
 }
-
-const base64ToBlobUrl = (base64: string) => {
-  const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-  const byteArray = new Uint8Array(byteNumbers);
-  const blob = new Blob([byteArray], { type: "image/webp" });
-  return URL.createObjectURL(blob);
-};
 
 const InstallationAll = () => {
   const router = useRouter();
   const [apps, setApps] = useState<App[]>([]);
   const [rows, setRows] = useState<Data[]>([]);
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
   const isMobile = useMediaQuery("(max-width:768px)");
   const [value, setValue] = useState("");
   const typeForm = "การติดตั้งแอป";
@@ -62,7 +52,7 @@ const InstallationAll = () => {
         .map((app: any) => ({
           id: app.Id,
           imageNumber: app.ImageNumber,
-          image: base64ToBlobUrl(app.Image),
+          imagePath: `${URLFile}${app.ImagePath}`,
           applicationMainType: app.ApplicationMainType,
           applicationType: app.ApplicationType,
         }))
@@ -171,7 +161,7 @@ const InstallationAll = () => {
                         textAlign: "center",
                         margin: isMobile ? "0 auto" : undefined,
                       }}
-                      cover={<img alt="example" src={b.image} />}
+                      cover={<img alt="example" src={b.imagePath} />}
                       actions={[
                         <EditOutlined
                           key="edit"

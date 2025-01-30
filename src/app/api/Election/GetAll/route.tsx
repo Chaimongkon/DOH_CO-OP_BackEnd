@@ -36,8 +36,8 @@ export async function GET(req: NextRequest) {
 
     // Add search filter if present
     if (search) {
-      query += " WHERE (Member LIKE ? OR FullName LIKE ?)";
-      params.push(`%${search}%`, `%${search}%`);
+      query += " WHERE (Member LIKE ? OR FullName LIKE ? OR IdCard LIKE ?)";
+      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
     }
 
     // Add memberTypes filter if provided

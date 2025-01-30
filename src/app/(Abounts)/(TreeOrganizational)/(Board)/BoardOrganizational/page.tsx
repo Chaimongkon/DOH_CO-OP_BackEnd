@@ -1,15 +1,16 @@
 "use client";
-import { Box, Paper, Typography, useMediaQuery } from "@mui/material";
+import { Box, Paper, Tab, Typography, useMediaQuery } from "@mui/material";
 import Button from "@mui/material/Button";
 import DashboardCard from "@/app/(Dashboard)/components/shared/DashboardCard";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { Card } from "antd";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
+import { TabContext, TabList, TabPanel } from "@mui/lab";
 
 const { Meta } = Card;
 
@@ -19,7 +20,16 @@ interface Board {
   position: string;
   priority: string;
   type: string;
-  image: string;
+  imagePath: string;
+}
+
+interface Data {
+  Id: number;
+  Name: string;
+  Position: string;
+  Priority: string;
+  Type: string;
+  ImagePath: string;
 }
 
 const base64ToBlobUrl = (base64: string) => {
@@ -35,32 +45,35 @@ const base64ToBlobUrl = (base64: string) => {
 
 const BoardOrganizational = () => {
   const router = useRouter();
-  const timestamp = new Date().getTime();
   const [board, setBoard] = useState<Board[]>([]);
+  const [rows, setRows] = useState<Data[]>([]);
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
   const isMobile = useMediaQuery("(max-width:768px)");
+  const [value, setValue] = useState("");
 
   const fetchBoard = useCallback(async () => {
-    try {
-      const response = await fetch(`${API}/TreeOrganizational/GetBoardAll`);
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const data = await response.json();
-
-      const processedData = data.map((boards: any) => ({
-        id: boards.Id,
-        name: boards.Name,
-        position: boards.Position,
-        priority: boards.Priority,
-        type: boards.Type,
-        image: base64ToBlobUrl(boards.Image),
-      }));
-      setBoard(processedData);
-    } catch (error) {
-      console.error("Failed to fetch Board:", error);
+  try {
+    const response = await fetch(`${API}/TreeOrganizational/GetBoardAll`);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
     }
-  }, [API]);
+    const { data } = await response.json();
+      const processedData = data.map((board: any) => ({
+        id: board.Id,
+        name: board.Name,
+        position: board.Position,
+        priority: board.Priority,
+        type: board.Type,
+        imagePath: `${URLFile}${board.ImagePath}`,
+    }));
+
+    setBoard(processedData);
+    setRows(data);
+  } catch (error) {
+    console.error("Failed to fetch images:", error);
+  }
+}, [API]);
 
   const handleDelete = async (id: number) => {
     try {
@@ -91,8 +104,22 @@ const BoardOrganizational = () => {
     fetchBoard();
   }, [fetchBoard]);
 
+  const uniqueType = useMemo(
+    () => Array.from(new Set(rows.map((row) => row.Type))),
+    [rows]
+  );
+
+  // Set initial tab value after uniqueType is computed
+  useEffect(() => {
+    if (uniqueType.length > 0) {
+      setValue(uniqueType[0]);
+    }
+  }, [uniqueType]);
+
   const renderBoardByPriority = (priority: string) => {
-    const filteredBoard = board.filter((b) => b.priority === priority);
+    const filteredBoard = board.filter(
+      (b) => b.priority === priority && b.type === value
+    );
 
     return (
       <Box
@@ -113,11 +140,13 @@ const BoardOrganizational = () => {
               width: isMobile ? "80%" : "15%", // Adjust width for mobile devices
               textAlign: "center",
             }}
-            cover={<img alt="example" src={b.image} />}
+            cover={<img alt="example" src={b.imagePath} />}
             actions={[
               <EditOutlined
                 key="edit"
-                onClick={() => router.push(`/BoardOrganizationalEdit/${b.id}`)}
+                onClick={() =>
+                  router.push(`/BoardOrganizationalEdit/${b.id}`)
+                }
               />,
               <DeleteOutlined
                 key="delete"
@@ -136,6 +165,10 @@ const BoardOrganizational = () => {
     );
   };
 
+  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    setValue(newValue);
+  };
+
   return (
     <DashboardCard title="คณะกรรมการดำเนินการ">
       <Paper>
@@ -152,11 +185,24 @@ const BoardOrganizational = () => {
             </Button>
           </Link>
         </Box>
-        <Box>
-          {["1", "2", "3", "4", "5"].map((priority) =>
-            renderBoardByPriority(priority)
-          )}
-        </Box>
+        <TabContext value={value}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <TabList onChange={handleChange} aria-label="lab API tabs example">
+              {uniqueType.map((type) => (
+                <Tab label={type} value={type} key={type} />
+              ))}
+            </TabList>
+          </Box>
+          {uniqueType.map((type, index) => (
+            <TabPanel key={index} value={type}>
+              <Box>
+                {["1", "2", "3", "4", "5"].map((priority) =>
+                  renderBoardByPriority(priority)
+                )}
+              </Box>
+            </TabPanel>
+          ))}
+        </TabContext>
       </Paper>
     </DashboardCard>
   );

@@ -7,21 +7,20 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CancelIcon from "@mui/icons-material/Cancel";
 import FlipCameraAndroidIcon from "@mui/icons-material/FlipCameraAndroid";
 import { useRouter } from "next/navigation";
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams } from "next/navigation";
 
 interface MemberOption {
   data: string;
 }
+
 const FormDownloadsCreate = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const typeForm = searchParams.get('typeForm');
-  const currentYear = new Date().getFullYear();
+  const typeForm = searchParams.get("typeForm");
   const [title, setTitle] = useState("");
   const [pdf, setPDF] = useState<File | null>(null);
   const [titleMember, setTitleMember] = useState<MemberOption | null>(null);
-  const [pdfpreview, setPdfpreview] = useState<any>(null);
-  const [isSelectedPDF, setIsSelectedPDF] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const Member: MemberOption[] = [
@@ -41,69 +40,59 @@ const FormDownloadsCreate = () => {
   const handlePDF = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const selectedPDF = event.target.files[0];
-      const readerpdf = new FileReader();
-      readerpdf.readAsDataURL(selectedPDF);
-      readerpdf.onloadend = async () => {
-        const base64Stringpdf = readerpdf.result?.toString().split(",")[1];
+      setPDF(selectedPDF);
 
-        setPdfpreview(base64Stringpdf);
-        setPDF(selectedPDF);
-        setIsSelectedPDF(true);
-      };
+      // Create a preview URL for the selected PDF
+      const pdfUrl = URL.createObjectURL(selectedPDF);
+      setPdfPreviewUrl(pdfUrl);
     }
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    // Manually check if a PDF file is selected
     await handleUpload();
   };
 
   const handleUpload = async () => {
     if (pdf) {
-      const readerpdf = new FileReader();
-      readerpdf.readAsDataURL(pdf);
-      readerpdf.onloadend = async () => {
-        const base64Stringpdf = readerpdf.result?.toString().split(",")[1];
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("typeForm", typeForm || "");
+      formData.append("typeMember", titleMember?.data || "");
+      formData.append("pdf", pdf);
 
-        if (base64Stringpdf) {
-          const response = await fetch(`${API}/FormDowsloads/Create`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              title: title,
-              typeForm: typeForm,
-              typeMember: titleMember?.data,
-              pdf: `data:application/pdf;base64,${base64Stringpdf}`,
-            }),
+      try {
+        const response = await fetch(`${API}/FormDowsloads/Create`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          Swal.fire({
+            position: "top-end",
+            icon: "success",
+            title: "CREATE SUCCESSFULLY",
+            showConfirmButton: false,
+            timer: 1500,
+          }).then(() => {
+            router.back();
           });
-
-          if (response.ok) {
-            Swal.fire({
-              position: "top-end",
-              icon: "success",
-              title: "CREATE SUCCESSFULLY",
-              showConfirmButton: false,
-              timer: 1500,
-            }).then(() => {
-              router.back()
-            });
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Oops...",
-              text: "Failed to upload image.",
-            });
-          }
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Failed to upload file.",
+          });
         }
-      };
-    } else {
-      Swal.fire({
-        icon: "warning",
-        title: "Missing image or pdf",
-        text: "Please select both an image and a pdf.",
-      });
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Failed to upload file. Check console for details.",
+        });
+      }
     }
   };
 
@@ -113,7 +102,6 @@ const FormDownloadsCreate = () => {
         <Box component="section" sx={{ p: 2 }}>
           <TextField
             fullWidth
-            id="outlined-basic"
             label="ชื่อฟอร์ม"
             variant="outlined"
             size="small"
@@ -123,7 +111,6 @@ const FormDownloadsCreate = () => {
         <Box component="section" sx={{ p: 2 }}>
           <TextField
             fullWidth
-            id="outlined-basic"
             label="ประเภทฟอร์ม Read Only"
             size="small"
             InputProps={{
@@ -136,7 +123,6 @@ const FormDownloadsCreate = () => {
         <Box component="section" sx={{ p: 2 }}>
           <Autocomplete
             fullWidth
-            id="combo-box-demo"
             options={Member}
             size="small"
             getOptionLabel={(option) => option.data}
@@ -166,20 +152,18 @@ const FormDownloadsCreate = () => {
             </label>
             <br />
             <br />
-            {isSelectedPDF ? (
+            {pdfPreviewUrl ? (
               <div>
                 <center>
+                  {/* PDF Preview using iframe */}
                   <iframe
-                    src={`data:application/pdf;base64,${pdfpreview}`}
+                    src={pdfPreviewUrl}
                     width="100%"
-                    height="600px"
+                    height="500px"
                     title="PDF Preview"
                   />
                   <br />
-
                   <h6>Filename: {pdf?.name}</h6>
-
-                  <br />
                   <Button
                     variant="contained"
                     color="warning"
@@ -202,22 +186,17 @@ const FormDownloadsCreate = () => {
                   />
                   <br />
                   <br />
-                  <h6>Upload Image File</h6>
+                  <h6>Upload PDF File</h6>
                 </center>
               </div>
             )}
             <input
               type="file"
               accept="application/pdf"
-              name="image"
+              name="pdf"
               onChange={handlePDF}
               ref={hiddenPDFFileInput}
-              style={{
-                position: "absolute",
-                top: "-1000px",
-                left: "-1000px",
-              }}
-              required
+              style={{ display: "none" }}
             />
           </div>
         </Box>
@@ -227,6 +206,7 @@ const FormDownloadsCreate = () => {
               variant="contained"
               endIcon={<CloudUploadIcon />}
               type="submit"
+              disabled={!title || !typeForm || !titleMember || !pdf}
             >
               Submit
             </Button>

@@ -11,19 +11,19 @@ import FlipCameraAndroidIcon from "@mui/icons-material/FlipCameraAndroid";
 
 interface FormData {
   no: string;
-  url: string;
+  urllink: string;
   image: File | null;
   imageUrl: string;
 }
-
 
 const SlideEdit = () => {
   const router = useRouter();
   const { id } = useParams();
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
   const [formData, setFormData] = useState<FormData>({
     no: "",
-    url: "",
+    urllink: "",
     image: null,
     imageUrl: "",
   });
@@ -38,14 +38,16 @@ const SlideEdit = () => {
       const processedData = data.map((slide: any) => ({
         id: slide.Id,
         no: slide.No,
-        image: `data:;base64,${slide.Image}`,
+        image: data[0].ImagePath
+          ? `${URLFile}${data[0].ImagePath}` // Use the file path instead of base64
+          : "",
         url: slide.URLLink,
       }));
 
       if (processedData.length > 0) {
         setFormData({
           no: processedData[0].no,
-          url: processedData[0].url,
+          urllink: processedData[0].url,
           image: processedData[0].image,
           imageUrl: processedData[0].image,
         });
@@ -88,65 +90,52 @@ const SlideEdit = () => {
     }
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { image, no, url, imageUrl } = formData;
-  
-    let base64Image: string | null = null;
-  
-    if (image && image instanceof File) {
-      // If a new image file is uploaded, convert it to base64
-      const reader = new FileReader();
-      reader.readAsDataURL(image as Blob);
-      reader.onloadend = async () => {
-        const base64String = reader.result?.toString().split(",")[1];
-    
-        if (base64String) {
-          base64Image = `data:;base64,${base64String}`;
-          await submitForm(base64Image);
-        }
-      };
-    } else {
-      // If no new image is uploaded, use the existing imageUrl
-      base64Image = imageUrl;
-      await submitForm(base64Image);
+    const { no, image, urllink } = formData;
+
+    const formDataToSend = new FormData();
+    formDataToSend.append("no", no);
+    formDataToSend.append("urllink", urllink);
+
+    // Append files only if they exist
+    if (image) {
+      formDataToSend.append("image", image);
     }
-  };
-  
-  const submitForm = async (base64Image: string | null) => {
-    const { no, url } = formData;
-  
-    const response = await fetch(`${API}/Slides/Edit/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        no: no,
-        image: base64Image,
-        urllink: url,
-      }),
-    });
-  
-    if (response.ok) {
-      Swal.fire({
-        position: "top-end",
-        icon: "success",
-        title: "UPDATE SUCCESSFULLY",
-        showConfirmButton: false,
-        timer: 1500,
-      }).then(() => {
-        router.push(`/SlideAll`);
+
+    try {
+      const response = await fetch(`${API}/Slides/Edit/${id}`, {
+        method: "PUT",
+        body: formDataToSend, // Send FormData directly
       });
-    } else {
+
+      if (response.ok) {
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "UPDATE SUCCESSFULLY",
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          router.push(`/SlideAll`);
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Failed to upload image.",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to submit form:", error);
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: "Failed to upload image.",
+        text: "Failed to submit form. Check the console for more details.",
       });
     }
   };
-  
+
   const triggerFileInputClick = () => {
     const fileInput = document.getElementById(
       "imageUpload"
@@ -180,7 +169,14 @@ const SlideEdit = () => {
             <div className="form-group">
               <center>
                 {formData.imageUrl && (
-                  <img height="256px" src={formData.imageUrl || "/images/backgrounds/upload-image.png"} alt="Preview" />
+                  <img
+                    height="256px"
+                    src={
+                      formData.imageUrl ||
+                      "/images/backgrounds/upload-image.png"
+                    }
+                    alt="Preview"
+                  />
                 )}
                 <br />
                 <br />
@@ -225,7 +221,7 @@ const SlideEdit = () => {
             size="small"
             name="url"
             onChange={handleInputChange}
-            value={formData.url}
+            value={formData.urllink}
           />
         </Box>
         <Box component="section" sx={{ p: 2 }}>

@@ -28,6 +28,7 @@ const PhotoAllPage = () => {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
   const [photos, setPhotos] = useState<Photo[]>([]);
+  console.log(photos)
   const [loading, setLoading] = useState(true);
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
   const URLImg = process.env.NEXT_PUBLIC_PICHER_BASE_URL;

@@ -20,7 +20,7 @@ interface Board {
   position: string;
   priority: string;
   type: string;
-  image: string;
+  imagePath: string;
 }
 
 interface Data {
@@ -29,50 +29,40 @@ interface Data {
   Position: string;
   Priority: string;
   Type: string;
-  Image: string;
+  ImagePath: string;
 }
-
-const base64ToBlobUrl = (base64: string) => {
-  const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-  const byteArray = new Uint8Array(byteNumbers);
-  const blob = new Blob([byteArray], { type: "image/webp" }); // adjust the type if necessary
-  return URL.createObjectURL(blob);
-};
 
 const OfficerOrganizational = () => {
   const router = useRouter();
   const [board, setBoard] = useState<Board[]>([]);
   const [rows, setRows] = useState<Data[]>([]);
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
   const isMobile = useMediaQuery("(max-width:768px)");
   const [value, setValue] = useState("");
 
   const fetchBoard = useCallback(async () => {
-    try {
-      const response = await fetch(`${API}/TreeOrganizational/GetOfficerAll`);
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const data = await response.json();
-
-      const processedData = data.map((boards: any) => ({
-        id: boards.Id,
-        name: boards.Name,
-        position: boards.Position,
-        priority: boards.Priority,
-        type: boards.Type,
-        image: base64ToBlobUrl(boards.Image),
-      }));
-      setBoard(processedData);
-      setRows(data);
-    } catch (error) {
-      console.error("Failed to fetch Board:", error);
+  try {
+    const response = await fetch(`${API}/TreeOrganizational/GetOfficerAll`);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
     }
-  }, [API]);
+    const { data } = await response.json();
+      const processedData = data.map((officer: any) => ({
+        id: officer.Id,
+        name: officer.Name,
+        position: officer.Position,
+        priority: officer.Priority,
+        type: officer.Type,
+        imagePath: `${URLFile}${officer.ImagePath}`,
+    }));
+
+    setBoard(processedData);
+    setRows(data);
+  } catch (error) {
+    console.error("Failed to fetch images:", error);
+  }
+}, [API]);
 
   const handleDelete = async (id: number) => {
     try {
@@ -139,12 +129,12 @@ const OfficerOrganizational = () => {
               width: isMobile ? "80%" : "15%", // Adjust width for mobile devices
               textAlign: "center",
             }}
-            cover={<img alt="example" src={b.image} />}
+            cover={<img alt="example" src={b.imagePath} />}
             actions={[
               <EditOutlined
                 key="edit"
                 onClick={() =>
-                  router.push(`/AuditorsOrganizationalEdit/${b.id}`)
+                  router.push(`/OfficerOrganizationalEdit/${b.id}`)
                 }
               />,
               <DeleteOutlined

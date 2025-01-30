@@ -12,7 +12,6 @@ interface TypeOption {
   data: string;
 }
 
-
 const CooperativeSocietyCreate = () => {
   const router = useRouter();
   const [image, setImage] = useState<File | null>(null);
@@ -68,48 +67,45 @@ const CooperativeSocietyCreate = () => {
   };
 
   const handleUpload = async () => {
-    if (image) {
-      const reader = new FileReader();
-      reader.readAsDataURL(image);
-      reader.onloadend = async () => {
-        const base64String = reader.result?.toString().split(",")[1];
+    if (image && titleType) {
+      const formData = new FormData();
+      formData.append("image", image); // Append the image file
+      formData.append("societyType", titleType.data); // Append the society type
 
-        if (base64String) {
-          const imageType = image.type;
-          const response = await fetch(`${API}/CooperativeSociety/Create`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              image: `data:${imageType};base64,${base64String}`,
-              societyType: titleType?.data,
-            }),
+      try {
+        const response = await fetch(`${API}/CooperativeSociety/Create`, {
+          method: "POST",
+          body: formData, // Send form data including the image
+        });
+
+        if (response.ok) {
+          Swal.fire({
+            position: "top-end",
+            icon: "success",
+            title: "CREATE SUCCESSFULLY",
+            showConfirmButton: false,
+            timer: 1500,
+          }).then(() => {
+            router.push(`/CooperativeSocietyAll`);
           });
-
-          if (response.ok) {
-            Swal.fire({
-              position: "top-end",
-              icon: "success",
-              title: "CREATE SUCCESSFULLY",
-              showConfirmButton: false,
-              timer: 1500,
-            }).then(() => {
-              router.push(`/CooperativeSocietyAll`);
-            });
-            setImage(null);
-            setTitleType(null);
-            setIsSelectedimg(false);
-            setPreview(null);
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Oops...",
-              text: "Failed to upload image.",
-            });
-          }
+          setImage(null);
+          setTitleType(null);
+          setIsSelectedimg(false);
+          setPreview(null);
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Failed to upload image.",
+          });
         }
-      };
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "An error occurred while uploading the image.",
+        });
+      }
     }
   };
 

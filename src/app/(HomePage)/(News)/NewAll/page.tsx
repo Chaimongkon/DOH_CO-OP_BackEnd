@@ -19,7 +19,6 @@ import {
   InputBase,
   Divider,
   IconButton,
-  Typography,
   useMediaQuery,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -52,20 +51,9 @@ interface Data {
   Id: number;
   Title: string;
   Details: string;
-  Image: string;
-  File: string;
+  ImagePath: string;
+  PdfPath: string;
 }
-
-const base64ToBlobUrl = (base64: string, type: string) => {
-  const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-  const byteArray = new Uint8Array(byteNumbers);
-  const blob = new Blob([byteArray], { type });
-  return URL.createObjectURL(blob);
-};
 
 export default function NewAll() {
   const theme = useTheme();
@@ -75,9 +63,10 @@ export default function NewAll() {
   const [rows, setRows] = useState<Data[]>([]);
   const [totalRows, setTotalRows] = useState(0);
   const [open, setOpen] = useState(false);
-  const [pdfBase64, setPdfBase64] = useState<string | null>(null);
+  const [pdfPath, setPdfPath] = useState<string | null>(null);
   const [search, setSearch] = useState(""); // State for search query
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
   const currentPage = useRef(0);
   const router = useRouter();
 
@@ -115,15 +104,14 @@ export default function NewAll() {
     getPaginatedData();
   }, [page, rowsPerPage, getPaginatedData]);
 
-  const handleClickOpen = (base64: string) => {
-    const blobUrl = base64ToBlobUrl(base64, "application/pdf");
-    setPdfBase64(blobUrl);
+  const handleClickOpen = (pdfPath: string) => {
+    setPdfPath(pdfPath); // Set the PDF path for preview
     setOpen(true);
   };
 
   const handleClose = () => {
     setOpen(false);
-    setPdfBase64(null);
+    setPdfPath(null);
   };
 
   const handleDelete = async (id: number) => {
@@ -229,30 +217,31 @@ export default function NewAll() {
                         if (column.id === "Actions") {
                           return (
                             <TableCell key={column.id} align={column.align}>
-                            <Box sx={{ display: 'flex', gap: 1 }}>
-                              <Button
-                                component="label"
-                                variant="contained"
-                                size="small"
-                                color="warning"
-                                startIcon={<EditIcon />}
-                                onClick={() => router.push(`/NewEdit/${row.Id}`)}
-                              >
-                                Edit
-                              </Button>
-                              <Button
-                                component="label"
-                                variant="contained"
-                                size="small"
-                                color="error"
-                                startIcon={<DeleteIcon />}
-                                onClick={() => handleDelete(row.Id)}
-                              >
-                                Delete
-                              </Button>
-                            </Box>
-                          </TableCell>
-                          
+                              <Box sx={{ display: "flex", gap: 1 }}>
+                                <Button
+                                  component="label"
+                                  variant="contained"
+                                  size="small"
+                                  color="warning"
+                                  startIcon={<EditIcon />}
+                                  onClick={() =>
+                                    router.push(`/NewEdit/${row.Id}`)
+                                  }
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  component="label"
+                                  variant="contained"
+                                  size="small"
+                                  color="error"
+                                  startIcon={<DeleteIcon />}
+                                  onClick={() => handleDelete(row.Id)}
+                                >
+                                  Delete
+                                </Button>
+                              </Box>
+                            </TableCell>
                           );
                         } else {
                           const value = row[column.id as keyof Data];
@@ -260,10 +249,7 @@ export default function NewAll() {
                             <TableCell key={column.id} align={column.align}>
                               {column.id === "Image" ? (
                                 <img
-                                  src={base64ToBlobUrl(
-                                    value as string,
-                                    "image/webp"
-                                  )}
+                                  src={`${URLFile}${row.ImagePath}`} // Image from path
                                   alt={row.Title}
                                   style={{ width: "100px" }}
                                 />
@@ -272,7 +258,7 @@ export default function NewAll() {
                                   variant="contained"
                                   size="small"
                                   onClick={() =>
-                                    handleClickOpen(value as string)
+                                    handleClickOpen(`${URLFile}${row.PdfPath}`)
                                   }
                                 >
                                   View PDF
@@ -302,9 +288,9 @@ export default function NewAll() {
           <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
             <DialogTitle>PDF Preview</DialogTitle>
             <DialogContent>
-              {pdfBase64 && (
+              {pdfPath && (
                 <iframe
-                  src={pdfBase64}
+                  src={pdfPath} // Direct PDF path
                   width="100%"
                   height="600px"
                   title="PDF Preview"

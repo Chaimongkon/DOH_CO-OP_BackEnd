@@ -1,6 +1,6 @@
 "use client";
 import DashboardCard from "@/app/components/shared/DashboardCard";
-import PageContainer from '@/app/(Dashboard)/components/container/PageContainer';
+import PageContainer from "@/app/(Dashboard)/components/container/PageContainer";
 import { useEffect, useState, useCallback } from "react";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
@@ -22,42 +22,30 @@ import theme from "@/utils/theme";
 interface Image {
   id: number;
   no: number;
-  image: string;
+  imagePath: string;
   url: string;
 }
-
-const base64ToBlobUrl = (base64: string) => {
-  const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-  const byteArray = new Uint8Array(byteNumbers);
-  const blob = new Blob([byteArray], { type: 'image/webp' }); // adjust the type if necessary
-  return URL.createObjectURL(blob);
-};
 
 const SlideAll = () => {
   const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [slides, setSlides] = useState<Image[]>([]);
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const URLFile = process.env.NEXT_PUBLIC_PICHER_BASE_URL;
 
   const fetchImages = useCallback(async () => {
     try {
-      const response = await fetch(`${API}/Slides/GetAll?_=${new Date().getTime()}`);
+      const response = await fetch(`${API}/Slides/GetAll`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-      const data = await response.json();
-
+      const { data } = await response.json();
       const processedData = data.map((slide: any) => ({
         id: slide.Id,
         no: slide.No,
-        image: base64ToBlobUrl(slide.Image),
+        imagePath: `${URLFile}${slide.ImagePath}`,
         url: slide.URLLink,
       }));
-
       setSlides(processedData);
     } catch (error) {
       console.error("Failed to fetch images:", error);
@@ -94,7 +82,7 @@ const SlideAll = () => {
   return (
     <PageContainer>
       <DashboardCard title="จัดการ Slides">
-        <Container >
+        <Container>
           <Paper>
             <Box display="flex" justifyContent="space-between" mb={2}>
               <Box></Box>
@@ -135,7 +123,7 @@ const SlideAll = () => {
                       component="img"
                       alt="Slide Image"
                       height="140"
-                      image={slide.image}
+                      image={slide.imagePath}
                     />
                     <CardContent>
                       <Typography gutterBottom variant="h6" component="div">
