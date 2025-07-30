@@ -75,6 +75,11 @@ const VideoPage = () => {
   const [search, setSearch] = useState(""); // State for search query
   
   const getYouTubeVideoId = (url: string) => {
+    const shortsRegex = /youtube\.com\/shorts\/([^\s/?&]+)/;
+    const shortsMatch = url.match(shortsRegex);
+    if (shortsMatch && shortsMatch[1]) {
+      return shortsMatch[1];
+    }
     const regex =
       /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|watch)\?.*v=|embed\/)|youtu\.be\/)([^\s&]+)/;
     const match = url.match(regex);

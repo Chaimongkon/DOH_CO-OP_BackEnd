@@ -331,7 +331,7 @@ const MenuItems = [
         id: uniqueId(),
         icon: StyledIcon,
         title: "ดูข้อมูลส่วนบุคคล",
-        href: "/InformationAll",
+        href: "/PersonalDataAll",
         roles: ["SuperAdmin"],
       },
       {

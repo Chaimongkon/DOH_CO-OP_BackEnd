@@ -16,16 +16,24 @@ const VideoCreate = () => {
 
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  // Function to extract YouTube Video ID from URL
+  // Function to extract YouTube Video ID from URL, supporting both standard URLs and YouTube Shorts
   const getYouTubeVideoId = (url: string) => {
-    const regex =
+    // Check for YouTube Shorts URL pattern
+    const shortsRegex = /youtube\.com\/shorts\/([^\s/?&]+)/;
+    const shortsMatch = url.match(shortsRegex);
+    if (shortsMatch && shortsMatch[1]) {
+      return shortsMatch[1];
+    }
+
+    // Fallback for standard YouTube URLs
+    const normalRegex =
       /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|watch)\?.*v=|embed\/)|youtu\.be\/)([^\s&]+)/;
-    const match = url.match(regex);
+    const match = url.match(normalRegex);
     return match && match[1] ? match[1] : null;
   };
 
   // Handle changes in the YouTube link input
-  const handleYoutubeLinkChange = (e: any) => {
+  const handleYoutubeLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputUrl = e.target.value;
     setYoutubeLink(inputUrl);
     const id = getYouTubeVideoId(inputUrl);
@@ -37,7 +45,7 @@ const VideoCreate = () => {
   };
 
   // Handle form submission
-  const handleSubmit = async (event: any) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!title || !youtubeLink) {

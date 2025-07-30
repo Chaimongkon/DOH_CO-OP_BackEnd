@@ -147,7 +147,7 @@ const ApplicationCreate = () => {
   const getOptions = () => {
     if (typeForm === "การติดตั้งแอป") {
       return Install;
-    } else if (typeForm === "ดูข้อมูลส่วนบุคล") {
+    } else if (typeForm === "ดูข้อมูลส่วนบุคคล") {
       return Information;
     } else if (typeForm === "บริการทำประกัน") {
       return Insurance;
